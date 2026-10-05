@@ -4,6 +4,7 @@
 # and along x and y (2 mm apart, for material that is thin in z).
 #   scripts/thin.sh                 all parts
 #   scripts/thin.sh wall rear       selected parts
+#   AXES="x y" scripts/thin.sh     selected slice axes (default z x y)
 #   REPORT_ONLY=1 scripts/thin.sh   re-read the last exports, no OpenSCAD
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit
@@ -49,7 +50,8 @@ PY
 }
 fail=0
 for p in "${parts[@]}"; do
-  for ax in z x y; do
+  for ax in ${AXES:-z x y}; do
+    case $ax in x|y|z) ;; *) echo "FAIL  no such axis: $ax"; fail=1; continue;; esac
     pitch=0.4; [ "$ax" = z ] || pitch=2
     f="out/thin/${p}_$ax.stl"
     [ -n "${REPORT_ONLY:-}" ] || { rm -f "$f"; run openscad -D "part=\"$p\"" -D "axis=\"$ax\"" -D "pitch=$pitch" -o "$f" scad/thin.scad >"$f.log" 2>&1; }

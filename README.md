@@ -85,6 +85,7 @@ scripts/check.sh quick     # single unit and neighbours only
 scripts/check.sh array     # loaded 2x2 combo only (slow, CGAL)
 scripts/check.sh only a b  # the named checks only
 scripts/thin.sh            # no part has material under 0.8 mm (two perimeters)
+AXES=z scripts/thin.sh wall  # one part along one axis
 scripts/vent.sh            # caddy floor and bay plate honeycombs line up
 ```
 
