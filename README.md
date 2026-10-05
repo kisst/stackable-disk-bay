@@ -97,6 +97,8 @@ it is only the tail of a slice grazing a sharp corner.
 
 GitHub Actions runs `check.sh`, `thin.sh` and `vent.sh` on every push and
 pull request, and builds the printable STLs as a downloadable artifact.
+Pushing a `v*` tag publishes those STLs as a GitHub Release once every check
+passes.
 
 ## Layout
 
