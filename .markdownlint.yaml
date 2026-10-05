@@ -1,0 +1,4 @@
+# tables and code listings may run long; prose wraps at 80
+MD013:
+  tables: false
+  code_blocks: false

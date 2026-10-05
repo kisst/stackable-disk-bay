@@ -24,4 +24,5 @@ get wrong by a tenth of a millimetre and hard to see in a render.
 ## Consequences
 
 - Any change to a mating dimension is caught before a print.
-- Renders take ~30 s per part in CGAL.
+- Renders take ~30 s per part in CGAL; the full check suite runs in CI on
+  every push.

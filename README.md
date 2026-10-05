@@ -1,5 +1,7 @@
 # Stackable disk bay
 
+[![checks](https://github.com/kisst/stackable-disk-bay/actions/workflows/checks.yml/badge.svg)](https://github.com/kisst/stackable-disk-bay/actions/workflows/checks.yml)
+
 A 3D-printable bay and toolless caddy for 3.5" hard drives. Bays are identical
 and sit on top of and beside each other, located by hex bumps that drop into
 the neighbour's honeycomb, with no connector parts. The drive drops into the
@@ -92,6 +94,9 @@ displaced part hits material: tabs shifted in their slots, neighbours shifted
 along the bay into the bumps. `scripts/thin.sh` slices every part in its print orientation,
 opens each slice by 0.4 mm and fails on whatever the opening removed, unless
 it is only the tail of a slice grazing a sharp corner.
+
+GitHub Actions runs `check.sh`, `thin.sh` and `vent.sh` on every push and
+pull request, and builds the printable STLs as a downloadable artifact.
 
 ## Layout
 
