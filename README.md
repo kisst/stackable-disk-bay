@@ -104,3 +104,7 @@ scripts/    render.sh check.sh thin.sh vent.sh preview.py stl_components.py stl_
 docs/       design.md adr/ img/
 out/        build output (ignored)
 ```
+
+## License
+
+[MIT](LICENSE)
