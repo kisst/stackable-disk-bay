@@ -16,7 +16,8 @@ get wrong by a tenth of a millimetre and hard to see in a render.
 - Treat fit as testable: `scad/checks.scad` exports the intersection of
   pairs of bodies and `scripts/check.sh` asserts empty (or held, for the
   capture checks). OpenSCAD writes no file for an empty result and exits 1,
-  so the script clears old outputs first and reads "no file" as "no overlap".
+  so the script clears old outputs first and reads "no file" as "no overlap"
+  only when the log says the result was empty and holds no error.
 - A zero-thickness intersection (two faces touching) is a pass; only a
   volume fails.
 

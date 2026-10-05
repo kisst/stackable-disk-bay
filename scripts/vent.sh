@@ -13,11 +13,15 @@ from stl_components import read_stl, volume
 print(round(volume(read_stl(sys.argv[1])), 1))
 PY
 }
+declare -A A
 for w in footprint floor plate through; do
-  run openscad -q -D "which=\"$w\"" -o "out/vent/$w.stl" scad/vent.scad >/dev/null 2>&1 || true
-  [ -f "out/vent/$w.stl" ] && eval "A_$w=$(area out/vent/$w.stl)" || eval "A_$w=0"
+  rm -f "out/vent/$w.stl"
+  run openscad -D "which=\"$w\"" -o "out/vent/$w.stl" scad/vent.scad >"out/vent/$w.log" 2>&1 || true
+  # every region has area; no file means OpenSCAD failed
+  [ -f "out/vent/$w.stl" ] || { echo "FAIL  vent $w: OpenSCAD produced nothing, see out/vent/$w.log"; exit 1; }
+  A[$w]=$(area "out/vent/$w.stl")
 done
-python3 - "$A_footprint" "$A_floor" "$A_plate" "$A_through" <<'PY'
+python3 - "${A[footprint]}" "${A[floor]}" "${A[plate]}" "${A[through]}" <<'PY'
 import sys
 fp, fl, pl, th = map(float, sys.argv[1:])
 print(f"drive footprint          {fp:8.0f} mm^2")

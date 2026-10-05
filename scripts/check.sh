@@ -9,7 +9,14 @@ cd "$(dirname "$0")/.."
 IMG=openscad/openscad:2021.01
 [ "${1:-all}" = only ] || rm -rf out/checks; mkdir -p out/checks   # OpenSCAD writes no file for an empty result
 run() { docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work "$IMG" "$@"; }
-facets() { grep -c 'facet normal' "$1" 2>/dev/null || echo 0; }
+facets() { [ -f "$1" ] || { echo 0; return; }; grep -c 'facet normal' "$1" || true; }
+# export one check; OpenSCAD writes no file for an empty result, so a missing
+# file is only "empty" if the log says so, anything else is an error
+export_check() {
+  local f="out/checks/$1.stl"; rm -f "$f"
+  run openscad -D "check=\"$1\"" -o "$f" scad/checks.scad >"$f.log" 2>&1
+  ! grep -q '^ERROR:' "$f.log" && { [ -f "$f" ] || grep -q "top level object is empty" "$f.log"; }
+}
 # largest enclosed volume of any contact body, mm^3: 0 means faces touch, nothing overlaps
 thick() { [ -f "$1" ] || { echo 0; return; }; python3 - "$1" <<'PY'
 import sys, os; sys.path.insert(0, "scripts")
@@ -29,17 +36,18 @@ case "${1:-all}" in
   only)  shift; sel=" $* "; e=""; h=""
          for c in $empty_checks $array_checks; do case "$sel" in *" $c "*) e="$e $c";; esac; done
          for c in $hold_checks;                do case "$sel" in *" $c "*) h="$h $c";; esac; done
+         for c in $sel; do case " $empty_checks $array_checks $hold_checks " in *" $c "*) ;; *) echo "FAIL  $c: no such check"; fail=1;; esac; done
          empty_checks="$e"; hold_checks="$h" ;;
 esac
 for c in $empty_checks; do
-  run openscad -q -D "check=\"$c\"" -o "out/checks/$c.stl" scad/checks.scad >/dev/null 2>&1
+  export_check "$c" || { echo "FAIL  $c: OpenSCAD error, see out/checks/$c.stl.log"; fail=1; continue; }
   n=$(facets "out/checks/$c.stl"); t=$(thick "out/checks/$c.stl")
   if [ "$n" -eq 0 ]; then echo "PASS  $c: no contact"
   elif [ "$t" = "0" ] || [ "$t" = "0.0" ]; then echo "PASS  $c: touching on faces only, no overlap"
   else echo "FAIL  $c: overlap, $n facets, largest overlapping body $t mm^3"; python3 scripts/stl_bbox.py "out/checks/$c.stl"; fail=1; fi
 done
 for c in $hold_checks; do
-  run openscad -q -D "check=\"$c\"" -o "out/checks/$c.stl" scad/checks.scad >/dev/null 2>&1
+  export_check "$c" || { echo "FAIL  $c: OpenSCAD error, see out/checks/$c.stl.log"; fail=1; continue; }
   n=$(facets "out/checks/$c.stl")
   if [ "$n" -gt 0 ]; then echo "PASS  $c: held ($n facets engaged)"; else echo "FAIL  $c: nothing holds"; fail=1; fi
 done

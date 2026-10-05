@@ -10,6 +10,15 @@ use <bay.scad>
 check = "stack";
 $fn = 24;   // checks are booleans, not prints; coarse arcs keep CGAL fast
 
+// an unknown name would export nothing, which check.sh reads as a pass
+checks = ["walls_in_plates", "rear_in_bay", "hdd_vs_rear", "plugs_vs_rear", "plugs_on_tongue",
+          "caddy_in_bay", "bezel_on_tray", "bezel_engaged", "hdd_in_caddy", "tabs_engaged",
+          "rear_engaged", "bezel_seats", "path_panel_drop", "path_wall_side", "path_wall_lifted",
+          "path_wall_drop", "path_top_drop", "path_wall_engages", "stack", "side", "stack_holds",
+          "side_holds", "array_diag_a", "array_diag_b", "array_stack2", "array_side2",
+          "array_caddy_vs_neighbours"];
+assert(search([check], checks) != [[]], str("unknown check: ", check));
+
 module unit() { bay(); caddy(); hdd(); }
 module u(i, j) translate([0, i * pitch_y, j * pitch_z]) children();
 
