@@ -6,7 +6,7 @@
 #   scripts/thin.sh wall rear       selected parts
 #   REPORT_ONLY=1 scripts/thin.sh   re-read the last exports, no OpenSCAD
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 IMG=openscad/openscad:2021.01
 parts=("$@"); [ ${#parts[@]} -eq 0 ] && parts=(caddy_tray bezel plate wall rear)
 mkdir -p out/thin

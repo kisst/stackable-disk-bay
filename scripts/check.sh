@@ -5,7 +5,7 @@
 #   scripts/check.sh array    loaded 2x2 array only
 #   scripts/check.sh only a b  the named checks only
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 IMG=openscad/openscad:2021.01
 [ "${1:-all}" = only ] || rm -rf out/checks; mkdir -p out/checks   # OpenSCAD writes no file for an empty result
 run() { docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work "$IMG" "$@"; }

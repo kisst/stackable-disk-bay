@@ -4,7 +4,7 @@
 #   scripts/render.sh            # all parts
 #   scripts/render.sh caddy bay  # selected parts
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 IMG=openscad/openscad:2021.01
 parts=("$@"); [ ${#parts[@]} -eq 0 ] && parts=(caddy_tray bezel plate wall rear coupon hdd sata_plugs testfit assembly)
 mkdir -p out
@@ -29,26 +29,26 @@ for p in caddy_tray bezel plate_top plate_bottom wall rear coupon hdd sata_plugs
 CLASSES="plates:#4a7fb5 walls:#3f9a5c rears:#8e6fd1 caddies:#d9822b trays:#d9822b bezels:#8a4b1a hdds:#555c66 plugs:#a83232"
 # 1. one unit with the drive, colour per part (also with the top plate lifted off)
 for topflag in true false; do
-  a=""; sfx=""; [ "$topflag" = false ] && sfx="_open"
+  a=(); sfx=""; [ "$topflag" = false ] && sfx="_open"
   for pc in $CLASSES; do
     cls=${pc%%:*}; col=${pc##*:}; true
-    run openscad -D "part=\"$cls\"" -D "show_top=$topflag" -o "out/unit${sfx}_$cls.stl" scad/testfit.scad >/dev/null 2>&1 && a="$a out/unit${sfx}_$cls.stl::$col"
+    run openscad -D "part=\"$cls\"" -D "show_top=$topflag" -o "out/unit${sfx}_$cls.stl" scad/testfit.scad >/dev/null 2>&1 && a+=("out/unit${sfx}_$cls.stl::$col")
   done
-  [ -n "$a" ] && pyrun "out/testfit${sfx}.png" $a
+  [ ${#a[@]} -gt 0 ] && pyrun "out/testfit${sfx}.png" "${a[@]}"
 done
 # 1b. the fully assembled unit, every printed part plus the drive, no plugs
-a=""
+a=()
 for pc in $CLASSES; do
   cls=${pc%%:*}; col=${pc##*:}; case "$cls" in plugs|caddies) continue;; esac
-  [ -f "out/unit_$cls.stl" ] && a="$a out/unit_$cls.stl::$col"
+  [ -f "out/unit_$cls.stl" ] && a+=("out/unit_$cls.stl::$col")
 done
-[ -n "$a" ] && pyrun out/assembled.png $a
+[ ${#a[@]} -gt 0 ] && pyrun out/assembled.png "${a[@]}"
 # 1c. how bays join: exploded stack, exploded side-by-side, one joint close up
 for mode in stack side detail detail_side; do
-  a=""
+  a=()
   for pc in lower:#4a7fb5 upper:#d9822b; do
     cls=${pc%%:*}; col=${pc##*:}
-    run openscad -D "mode=\"$mode\"" -D "part=\"$cls\"" -o "out/join_${mode}_$cls.stl" scad/joining.scad >/dev/null 2>&1 && a="$a out/join_${mode}_$cls.stl::$col"
+    run openscad -D "mode=\"$mode\"" -D "part=\"$cls\"" -o "out/join_${mode}_$cls.stl" scad/joining.scad >/dev/null 2>&1 && a+=("out/join_${mode}_$cls.stl::$col")
   done
   case $mode in
     stack)  v="--views=20,-55+0,-90+20,125" ;;
@@ -56,28 +56,28 @@ for mode in stack side detail detail_side; do
     detail) v="--views=25,-50+10,-100+40,-150" ;;
     detail_side) v="--views=25,-30+0,-10+30,40" ;;
   esac
-  [ -n "$a" ] && pyrun $v "out/join_$mode.png" $a
+  [ ${#a[@]} -gt 0 ] && pyrun "$v" "out/join_$mode.png" "${a[@]}"
 done
 # 1d. assembly drawing: panel in the bottom plate, walls at the sides, top plate above
-a=""
+a=()
 for pc in plates:#4a7fb5 walls:#3f9a5c rears:#8e6fd1; do
   cls=${pc%%:*}; col=${pc##*:}
-  run openscad -D 'mode="assembly"' -D "part=\"$cls\"" -o "out/asmdraw_$cls.stl" scad/joining.scad >/dev/null 2>&1 && a="$a out/asmdraw_$cls.stl::$col"
+  run openscad -D 'mode="assembly"' -D "part=\"$cls\"" -o "out/asmdraw_$cls.stl" scad/joining.scad >/dev/null 2>&1 && a+=("out/asmdraw_$cls.stl::$col")
 done
-[ -n "$a" ] && pyrun --views=25,-50+0,-90+25,130 out/assembly_steps.png $a
+[ ${#a[@]} -gt 0 ] && pyrun --views=25,-50+0,-90+25,130 out/assembly_steps.png "${a[@]}"
 # 2. 2x2 combo, colour per part class
-a=""
+a=()
 for pc in $CLASSES; do
   cls=${pc%%:*}; col=${pc##*:}
-  run openscad -D "part=\"$cls\"" -o "out/asm_$cls.stl" scad/assembly.scad >/dev/null 2>&1 && a="$a out/asm_$cls.stl::$col"
+  run openscad -D "part=\"$cls\"" -o "out/asm_$cls.stl" scad/assembly.scad >/dev/null 2>&1 && a+=("out/asm_$cls.stl::$col")
 done
-[ -n "$a" ] && pyrun out/assembly_parts.png $a
+[ ${#a[@]} -gt 0 ] && pyrun out/assembly_parts.png "${a[@]}"
 # 3. 2x2 combo, colour per bay
-a=""
+a=()
 for uc in 0:#d9822b 1:#4a7fb5 2:#3f9a5c 3:#8e6fd1; do
   un=${uc%%:*}; col=${uc##*:}
-  run openscad -D "unit=$un" -o "out/asm_unit$un.stl" scad/assembly.scad >/dev/null 2>&1 && a="$a out/asm_unit$un.stl::$col"
+  run openscad -D "unit=$un" -o "out/asm_unit$un.stl" scad/assembly.scad >/dev/null 2>&1 && a+=("out/asm_unit$un.stl::$col")
 done
-[ -n "$a" ] && pyrun out/assembly_units.png $a
+[ ${#a[@]} -gt 0 ] && pyrun out/assembly_units.png "${a[@]}"
 python3 scripts/stl_components.py out/*.stl
 ls -la out
