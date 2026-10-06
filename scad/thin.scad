@@ -11,6 +11,7 @@
 include <params.scad>
 use <caddy.scad>
 use <bay.scad>
+use <accessories.scad>
 
 part = "caddy_tray";
 axis = "z";            // slice normal
@@ -21,17 +22,29 @@ $fn = 24;
 // each part as it lies on the bed
 module body() {
     if (part == "caddy_tray") caddy_tray(protrusions = false);
-    if (part == "bezel")      rotate([0, -90, 0]) bezel();
+    if (part == "bezel")      translate([0, 0, c_body_l + bezel_t]) rotate([0, 90, 0]) bezel();
     if (part == "plate")      plate("bottom");
     if (part == "wall")       wall();
     if (part == "rear")       rear();
+    if (part == "adapter25")  translate([0, 0, -c_floor]) adapter25(protrusions = false);
+    if (part == "foot")       translate([0, 0, foot_h]) foot();
+    if (part == "joiner_w1" || part == "joiner_w05" || part == "joiner_h1" || part == "joiner_h05" || part == "joiner_h3") joiner_part(substr4(part));
 }
 // [[x0, x1], [y0, y1], [z0, z1]] of the body
-ext = part == "caddy_tray" ? [[c_rear_gap, c_body_l + bezel_t], [-c_w/2, c_w/2], [0, c_wall_top]] :
-      part == "bezel"      ? [[b_z0, b_z1], [-b_w/2, b_w/2], [0, bezel_t + handle_depth]] :
+ext = part == "caddy_tray" ? [[push_x1, c_body_l + bezel_t], [-c_w/2, c_w/2], [0, sp_top + sp_bump_h]] :
+      part == "bezel"      ? [[b_z0, b_z1], [-b_w/2, b_w/2], [0, bezel_t]] :
       part == "plate"      ? [[b_x0, b_l], [-b_w/2, b_w/2], [0, b_t + bump_h]] :
       part == "wall"       ? [[b_x0, b_l], [-b_t, b_in_h + b_t], [0, b_wall + bump_h]] :
-      part == "rear"       ? [[-b_in_w/2 - b_wall, b_in_w/2 + b_wall], [-b_t, b_in_h + b_t], [0, rear_t]] : undef;
+      part == "rear"       ? [[-b_in_w/2 - b_wall, b_in_w/2 + b_wall], [-b_t, b_in_h + b_t], [0, rear_t]] :
+      part == "adapter25"  ? [[c_rear_gap, ad_len], [-hdd_w/2, hdd_w/2], [0, ad_h]] :
+      part == "foot"       ? [[-foot_af, foot_af], [-foot_af, foot_af], [0, foot_h + foot_pin_h]] :
+      part == "joiner_w1"  ? [[b_x0, b_l], [-jn_dt_depth, 2 * jn_w_zone + jn_dt_depth], [0, jn_t]] :
+      part == "joiner_w05" ? [[b_x0, b_l], [0, jn_w_zone + jn_dt_depth], [0, jn_t]] :
+      part == "joiner_h1"  ? [[b_x0, b_l], [-jn_dt_depth, 2 * jn_h_zone + jn_dt_depth], [0, jn_t]] :
+      part == "joiner_h05" ? [[b_x0, b_l], [0, jn_h_zone + jn_dt_depth], [0, jn_t]] :
+      part == "joiner_h3"  ? [[b_x0, b_l], [-jn_dt_depth, 6 * jn_h_zone + jn_dt_depth], [0, jn_t]] : undef;
+// "joiner_w05" -> "w05"
+function substr4(s) = str(s[7], s[8], len(s) > 9 ? s[9] : "");
 ai = axis == "x" ? 0 : axis == "y" ? 1 : 2;
 range = ext[ai];
 

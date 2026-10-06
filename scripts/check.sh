@@ -3,6 +3,7 @@
 #   scripts/check.sh          all checks (single-unit + loaded 2x2 array)
 #   scripts/check.sh quick    single-unit checks only
 #   scripts/check.sh array    loaded 2x2 array only
+#   scripts/check.sh acc      accessories only (2.5" adapter, feet, joiners)
 #   scripts/check.sh only a b  the named checks only
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit
@@ -26,22 +27,25 @@ print(0 if v < 0.01 else round(v, 2))
 PY
 }
 fail=0
-empty_checks="walls_in_plates rear_in_bay hdd_vs_rear plugs_vs_rear caddy_in_bay bezel_on_tray hdd_in_caddy stack side path_panel_drop path_wall_side path_wall_lifted path_wall_drop path_top_drop"
-hold_checks="plugs_on_tongue bezel_engaged tabs_engaged rear_engaged bezel_seats stack_holds side_holds path_wall_engages"
+empty_checks="walls_in_plates rear_in_bay hdd_vs_rear plugs_vs_rear caddy_in_bay bezel_on_tray hdd_in_caddy path_caddy_slide lock_track path_bezel_lip plugs_vs_caddy path_caddy_past_panel stack side path_wall_onto_panel path_u_drop path_top_drop"
+hold_checks="plugs_on_tongue bezel_engaged tabs_engaged rear_engaged rear_in_walls bezel_seats caddy_locked bezel_lip_holds posts_hold stack_holds side_holds"
 array_checks="array_diag_a array_diag_b array_stack2 array_side2 array_caddy_vs_neighbours"
+acc_empty="adapter_in_caddy hdd25_in_adapter plugs25_vs_rear feet_in_plate joiner_w_stack joiner_w_run joiner_h_side joiner_h_run joiner_h3_run"
+acc_hold="adapter_held hdd25_held feet_hold joiner_w_holds joiner_w_locks joiner_h_holds joiner_h_locks joiner_h3_locks"
 case "${1:-all}" in
   quick) ;;
   array) empty_checks="$array_checks"; hold_checks="" ;;
-  all)   empty_checks="$empty_checks $array_checks" ;;
+  acc)   empty_checks="$acc_empty"; hold_checks="$acc_hold" ;;
+  all)   empty_checks="$empty_checks $array_checks $acc_empty"; hold_checks="$hold_checks $acc_hold" ;;
   only)  shift; sel=" $* "; e=""; h=""
-         for c in $empty_checks $array_checks; do case "$sel" in *" $c "*) e="$e $c";; esac; done
-         for c in $hold_checks;                do case "$sel" in *" $c "*) h="$h $c";; esac; done
-         for c in $sel; do case " $empty_checks $array_checks $hold_checks " in *" $c "*) ;; *) echo "FAIL  $c: no such check"; fail=1;; esac; done
+         for c in $empty_checks $array_checks $acc_empty; do case "$sel" in *" $c "*) e="$e $c";; esac; done
+         for c in $hold_checks $acc_hold;                do case "$sel" in *" $c "*) h="$h $c";; esac; done
+         for c in $sel; do case " $empty_checks $array_checks $acc_empty $hold_checks $acc_hold " in *" $c "*) ;; *) echo "FAIL  $c: no such check"; fail=1;; esac; done
          empty_checks="$e"; hold_checks="$h" ;;
 esac
 for c in $empty_checks; do
   export_check "$c" || { echo "FAIL  $c: OpenSCAD error, see out/checks/$c.stl.log"; fail=1; continue; }
-  n=$(facets "out/checks/$c.stl"); t=$(thick "out/checks/$c.stl")
+  n=$(facets "out/checks/$c.stl"); t=0; [ "$n" -eq 0 ] || t=$(thick "out/checks/$c.stl")
   if [ "$n" -eq 0 ]; then echo "PASS  $c: no contact"
   elif [ "$t" = "0" ] || [ "$t" = "0.0" ]; then echo "PASS  $c: touching on faces only, no overlap"
   else echo "FAIL  $c: overlap, $n facets, largest overlapping body $t mm^3"; python3 scripts/stl_bbox.py "out/checks/$c.stl"; fail=1; fi

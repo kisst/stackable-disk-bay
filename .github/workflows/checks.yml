@@ -36,6 +36,8 @@ jobs:
             run: scripts/check.sh quick
           - name: fit (loaded 2x2 array)
             run: scripts/check.sh array
+          - name: fit (accessories)
+            run: scripts/check.sh acc
           - name: vent alignment
             run: scripts/vent.sh
     steps:
@@ -50,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [caddy_tray, bezel, plate, wall, rear]
+        part: [caddy_tray, bezel, plate, wall, rear, adapter25, foot, joiner_w1, joiner_w05, joiner_h1, joiner_h05, joiner_h3]
         axis: [x, y, z]
     steps:
       - uses: actions/checkout@v7
@@ -77,6 +79,13 @@ jobs:
             out/wall.stl
             out/rear.stl
             out/coupon.stl
+            out/adapter25.stl
+            out/foot.stl
+            out/joiner_w1.stl
+            out/joiner_w05.stl
+            out/joiner_h1.stl
+            out/joiner_h05.stl
+            out/joiner_h3.stl
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
@@ -84,17 +93,39 @@ jobs:
           path: out/*.png
           if-no-files-found: error
 
+  assemblies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker pull openscad/openscad:2021.01
+      - run: scripts/assemblies.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: assemblies
+          path: out/assemblies/*.3mf
+          if-no-files-found: error
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [lint, geometry, thin, render]
+    needs: [lint, geometry, thin, render, assemblies]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v7
         with:
           name: stl
           path: stl
-      - run: gh release create "$GITHUB_REF_NAME" stl/*.stl --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+      - uses: actions/download-artifact@v7
+        with:
+          name: assemblies
+          path: assemblies
+      # docs/release-notes/<tag>.md is the release body when it exists
+      - run: |
+          notes=(--generate-notes)
+          [ -f "docs/release-notes/$GITHUB_REF_NAME.md" ] && notes=(--notes-file "docs/release-notes/$GITHUB_REF_NAME.md")
+          gh release create "$GITHUB_REF_NAME" stl/*.stl assemblies/*.3mf --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" "${notes[@]}"
         env:
           GH_TOKEN: ${{ github.token }}

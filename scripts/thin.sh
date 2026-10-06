@@ -9,7 +9,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit
 IMG=openscad/openscad:2021.01
-parts=("$@"); [ ${#parts[@]} -eq 0 ] && parts=(caddy_tray bezel plate wall rear)
+parts=("$@"); [ ${#parts[@]} -eq 0 ] && parts=(caddy_tray bezel plate wall rear adapter25 foot joiner_w1 joiner_w05 joiner_h1 joiner_h05 joiner_h3)
 mkdir -p out/thin
 run() { docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work "$IMG" "$@"; }
 report() { python3 - "$1" "$2" <<'PY'

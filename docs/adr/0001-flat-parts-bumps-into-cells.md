@@ -31,8 +31,9 @@ little tension. Anything stronger can be had by gluing.
 - Six part types per drive and bay, none of them a connector.
 - Bumps locate and stop sliding; they do not lock. Glue them if a block
   must lift as one.
-- The arrows matter: the offsets assume neighbouring plates and walls point
-  the same way.
+- Orientation matters: the offsets assume neighbouring plates and walls
+  face the same way. (The plates' arrows were later dropped; their slots
+  show front and back, see design.md.)
 - Wall venting is three rows of 6 mm cells with row 0 kept clear.
 - Bay stiffness comes from the tab joints plus the rear panel and the
   inserted caddy; glue is recommended for a stack that will be moved.

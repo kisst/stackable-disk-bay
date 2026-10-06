@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render an STL (or several, each with an offset and colour) to a PNG.
 Runs inside a python Docker image; see scripts/render.sh.
-usage: preview.py out.png file.stl[:dx,dy,dz[:colour]] ..."""
+usage: preview.py [--views=e,a+e,a] [--titles=a|b] [--subdiv=mm] out.png file.stl[:dx,dy,dz[:colour]] ..."""
 import re, struct, sys
 import numpy as np
 import matplotlib
@@ -18,7 +18,20 @@ def read_stl(path):
     rec = np.frombuffer(data[84:84 + 50*n], dtype=np.dtype([("n", "<3f4"), ("v", "<9f4"), ("a", "<u2")]))
     return rec["v"].reshape(-1, 3, 3).astype(float)
 
-def main(out, specs, views):
+# split triangles until no edge is longer than `edge` mm: the painter's sort
+# draws whole faces by their centroid, and one huge face (a drive's lid) can
+# land behind things it covers
+def subdivide(tris, edge):
+    while True:
+        e = np.linalg.norm(tris[:, [1, 2, 0]] - tris, axis=2).max(1)
+        big = e > edge
+        if not big.any(): return tris
+        t = tris[big]; a, b, c = t[:, 0], t[:, 1], t[:, 2]
+        ab, bc, ca = (a + b) / 2, (b + c) / 2, (c + a) / 2
+        tris = np.concatenate([tris[~big], np.stack([a, ab, ca], 1), np.stack([ab, b, bc], 1),
+                               np.stack([ca, bc, c], 1), np.stack([ab, bc, ca], 1)])
+
+def main(out, specs, views, titles=None, edge=None):
     meshes = []
     for spec in specs:
         parts = spec.split(":")
@@ -26,7 +39,7 @@ def main(out, specs, views):
         if len(parts) > 1 and parts[1]:
             tris = tris + np.array([float(x) for x in parts[1].split(",")])
         colour = parts[2] if len(parts) > 2 else "#d9822b"
-        meshes.append((tris, colour))
+        meshes.append((subdivide(tris, edge) if edge else tris, colour))
     allv = np.concatenate([m[0].reshape(-1, 3) for m in meshes])
     lo, hi = allv.min(0), allv.max(0); c = (lo + hi) / 2; r = (hi - lo).max() / 2
     ncols = min(3, len(views)); nrows = (len(views) + ncols - 1) // ncols
@@ -34,16 +47,19 @@ def main(out, specs, views):
     light = np.array([0.4, -0.6, 0.7]); light /= np.linalg.norm(light)
     for i, (elev, azim) in enumerate(views):
         ax = fig.add_subplot(nrows, ncols, i + 1, projection="3d")
+        # one collection for every mesh: matplotlib depth-sorts faces only
+        # within a collection, so separate parts would be layered whole
+        all_tris, all_cols = [], []
         for tris, colour in meshes:
             n = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])
             n /= np.linalg.norm(n, axis=1)[:, None] + 1e-12
             shade = 0.45 + 0.55 * np.clip(n @ light, 0, 1)
             base = np.array(matplotlib.colors.to_rgb(colour))
-            cols = np.clip(base[None, :] * shade[:, None], 0, 1)
-            ax.add_collection3d(Poly3DCollection(tris, facecolors=cols, edgecolors="none"))
+            all_tris.append(tris); all_cols.append(np.clip(base[None, :] * shade[:, None], 0, 1))
+        ax.add_collection3d(Poly3DCollection(np.concatenate(all_tris), facecolors=np.concatenate(all_cols), edgecolors="none"))
         ax.set_xlim(c[0]-r, c[0]+r); ax.set_ylim(c[1]-r, c[1]+r); ax.set_zlim(c[2]-r, c[2]+r)
         ax.view_init(elev=elev, azim=azim); ax.set_axis_off()
-        ax.set_title(f"elev {elev}  azim {azim}", fontsize=9)
+        ax.set_title(titles[i] if titles else f"elev {elev}  azim {azim}", fontsize=12 if titles else 9)
     fig.tight_layout(); fig.savefig(out); print("wrote", out)
 
 if __name__ == "__main__":
@@ -53,5 +69,15 @@ if __name__ == "__main__":
     if args and args[0].startswith("--views="):
         views = [tuple(float(x) for x in v.split(",")) for v in args[0][8:].split("+")]
         args = args[1:]
+    # --titles=a|b  replaces the per-view camera captions (one per view; "_" reads as a space)
+    titles = None
+    if args and args[0].startswith("--titles="):
+        titles = [t.replace("_", " ") for t in args[0][9:].split("|")]   # "_" for spaces, shell-safe
+        args = args[1:]
+    # --subdiv=mm  splits big triangles so overlapping parts sort correctly
+    edge = None
+    if args and args[0].startswith("--subdiv="):
+        edge = float(args[0][9:])
+        args = args[1:]
     out, *specs = args
-    main(out, specs, views)
+    main(out, specs, views, titles, edge)

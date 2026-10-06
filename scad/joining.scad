@@ -20,15 +20,12 @@ module side_scene(e = explode) {
     if (on("upper")) color("Orange")    translate([0, pitch_y + e, 0]) bay();
 }
 
-// assembly drawing: bottom plate, panel standing in it, walls out to the
-// sides and lifted one plate thickness, top plate above
+// assembly drawing: walls on the panel's side tabs (a U) lifted above the
+// bottom plate, top plate above that
 module assembly_scene(e = 30) {
-    if (on("plates")) color("SteelBlue") { rotate([180, 0, 0]) plate("bottom"); translate([0, 0, b_in_h + e * 1.4]) plate("top"); }
-    if (on("rears"))  color("MediumPurple") rear_placed();
-    if (on("walls"))  color("SeaGreen") {
-        translate([0, -b_in_w/2 - e, b_t]) rotate([90, 0, 0]) wall();
-        translate([b_x0 + b_l, b_in_w/2 + e, b_t]) rotate([0, 0, 180]) rotate([90, 0, 0]) wall();
-    }
+    if (on("plates")) color("SteelBlue") { rotate([180, 0, 0]) plate("bottom"); translate([0, 0, b_in_h + e * 1.8]) plate("top"); }
+    if (on("rears"))  color("MediumPurple") translate([0, 0, e]) rear_placed();
+    if (on("walls"))  color("SeaGreen") translate([0, 0, e]) walls();
 }
 if (mode == "assembly") assembly_scene();
 if (mode == "stack") stack_scene();

@@ -1,5 +1,13 @@
 # 0004 — A provable assembly path, an open SATA corner, two detent bumps
 
+> **Partly superseded by [0005](0005-top-edge-spring-lock-grooved-rear-panel.md)**
+> after the first print. The detent finger and the lifted-wall assembly path
+> are replaced; the open SATA corner stands.
+>
+> **Mirrored by [0010](0010-sata-connector-on-the-plus-y-side.md):** the
+> open corner is the +y one and the bottom plate tabs sit on the −y half
+> (−40 and −12 mm). Read −y for +y and back below.
+
 ## Context
 
 Three problems the model has to rule out. A closed SATA window in the rear
