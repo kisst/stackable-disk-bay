@@ -31,7 +31,7 @@ module body() {
     if (part == "joiner_w1" || part == "joiner_w05" || part == "joiner_h1" || part == "joiner_h05" || part == "joiner_h3") joiner_part(substr4(part));
 }
 // [[x0, x1], [y0, y1], [z0, z1]] of the body
-ext = part == "caddy_tray" ? [[push_x1, c_body_l + bezel_t], [-c_w/2, c_w/2], [0, sp_top + sp_bump_h]] :
+ext = part == "caddy_tray" ? [[push_x1, c_body_l + bezel_t + pull_x], [-c_w/2, c_w/2], [0, sp_top + sp_bump_h]] :
       part == "bezel"      ? [[b_z0, b_z1], [-b_w/2, b_w/2], [0, bezel_t]] :
       part == "plate"      ? [[b_x0, b_l], [-b_w/2, b_w/2], [0, b_t + bump_h]] :
       part == "wall"       ? [[b_x0, b_l], [-b_t, b_in_h + b_t], [0, b_wall + bump_h]] :
@@ -53,17 +53,27 @@ module to_z()   { if (ai == 0) rotate([0, -90, 0]) children(); else if (ai == 1)
 module from_z() { if (ai == 0) rotate([0, 90, 0]) children();  else if (ai == 1) rotate([-90, 0, 0]) children(); else children(); }
 function shift(s) = ai == 0 ? [-s, 0, 0] : ai == 1 ? [0, -s, 0] : [0, 0, -s];
 
-module slice(s) projection(cut = true) to_z() translate(shift(s)) body();
+module cut(s) projection(cut = true) to_z() translate(shift(s)) body();
 // the slice opened by min_section/2: everything at least min_section thick.
 // Erode with straight (mitred) edges, dilate with round ones: a mitred
 // dilation would rebuild a sharp wedge exactly, however thin it gets.
-module opened(s) { e = min_section / 2; offset(r = e) offset(delta = -e) slice(s); }
+module opened(s) { e = min_section / 2; offset(r = e) offset(delta = -e) cut(s); }
 // what the opening removed: material thinner than min_section. The round
 // dilation leaves zero-width slivers along the edges it rebuilt; a 0.02 mm
 // opening drops those before they are measured or offset.
-module thin2d(s) offset(delta = 0.01) offset(delta = -0.01) difference() { slice(s); opened(s); }
+module thin1(s) offset(delta = 0.01) offset(delta = -0.01) difference() { cut(s); opened(s); }
+// In the x and y passes material counts as thin only where it is thin in
+// two cuts `slab` apart, so over that whole depth. A cut that runs along a
+// sloped face (the wall tabs' dovetails) shows the slope's toe as a thin
+// sheet 0.8 * tan(slope) deep, 0.2 mm at 15 degrees, though the part is
+// solid; a cut that grazes the tip of a tapered pin shows a sliver. A real
+// roof or neck spans both cuts, and one shorter than the slab is thin along
+// the slice normal too and shows in the z pass. The z pass keeps single
+// cuts: a layer is a layer.
+slab = 0.5;
+module thin2d(s) if (ai == 2) thin1(s); else intersection() { thin1(s - slab/2); thin1(s + slab/2); }
 // where the thin material joins the thick: a hair-thin strip per contact
-module contact2d(s) intersection() { offset(delta = 0.05) thin2d(s); opened(s); }
+module contact2d(s) intersection() { offset(delta = 0.05) thin2d(s); if (ai == 2) opened(s); else union() { opened(s - slab/2); opened(s + slab/2); } }
 
 off = 1000;
 n = floor((range[1] - range[0]) / pitch);

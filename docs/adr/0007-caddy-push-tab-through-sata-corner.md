@@ -1,5 +1,9 @@
 # 0007 — Push tab through the rear panel's SATA corner
 
+> **Superseded by [0013](0013-second-print-push-tab-pull-ledge.md):** the
+> push tab is a floor-thick tongue near the middle of the rear edge, 2 mm proud
+> of the bay; at the corner it racked the caddy.
+>
 > **Mirrored by [0010](0010-sata-connector-on-the-plus-y-side.md):** the
 > push tab is on the tray's rear +y corner, following the open corner.
 > Otherwise unchanged.

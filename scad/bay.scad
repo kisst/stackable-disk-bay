@@ -1,12 +1,27 @@
 // Bay: two identical plates, two identical walls and a rear panel, all
-// printed flat, joined by tabs through slots (press fit, glue optional).
+// printed flat, joined by tabs through slots and dovetailed wall tabs in
+// notches at the plates' edges (no glue).
 // Plate bumps drop into the honeycomb cells of the bay above and wall bumps
 // into the cells of the bay beside, so bays join with no extra part. The
 // rear panel squares the back and leaves the SATA plugs clear.
 include <lib.scad>
 
-// slot for a tab of length `l` centred at (x, y), through a flat part
-module slot(x, y, l, w, c = tab_clr) translate([x - l/2 - c, y - w/2 - c, -1]) cube([l + 2*c, w + 2*c, 10]);
+// slot for a tab of length `l` centred at (x, y), through a flat part, with
+// clearance `c` a side along the tab's length and `cw` across its thickness
+module slot(x, y, l, w, c, cw = undef) let(cw = is_undef(cw) ? c : cw)
+    translate([x - l/2 - c, y - w/2 - cw, -1]) cube([l + 2*c, w + 2*cw, 10]);
+
+// wall tab dovetail, in a frame of its own: x along the tab from its centre,
+// w from the wall's outer face (0) to its inner face (b_wall), u from the
+// plate's inner face (0) to its outer face (b_t). Both ends move out with u
+// (the flare) and with w (the splay). The hull of the corners of the block
+// u0..u1, w0..w1, ends c further out, exactly (a polyhedron, so faces land
+// on the parts' faces); the caller maps (x, w, u) into place.
+function tab_end(u, w, c = 0, splay = tab_splay) = tab_len/2 + c + u * tan(tab_flare) + w * tan(splay);
+module tab_dovetail(u0, u1, w0, w1, c = 0, splay = tab_splay)
+    polyhedron([for (u = [u0, u1]) for (p = [[-1, w0], [1, w0], [1, w1], [-1, w1]])
+                    [p[0] * tab_end(u, p[1], c, splay), p[1], u]],
+               [[0, 1, 2, 3], [4, 5, 1, 0], [7, 6, 5, 4], [5, 6, 2, 1], [6, 7, 3, 2], [7, 4, 0, 3]]);
 
 // ---- plate, own frame: flat, x b_x0..b_l, y centred, z 0..b_t, bumps on +z.
 //      The bottom plate is turned over when assembled. The two prints tell
@@ -17,14 +32,16 @@ module slot(x, y, l, w, c = tab_clr) translate([x - l/2 - c, y - w/2 - c, -1]) c
 module plate(kind = "top") {
     difference() {
         box([b_x0, -b_w/2, 0], [b_l, b_w/2, b_t]);
-        for (x = tab_x, s = [-1, 1]) slot(x, s * (b_in_w/2 + b_wall/2), tab_len, b_wall);   // walls
+        // wall notches, open at the edge: (x, w, u) -> (x, edge - w, u)
+        for (x = tab_x, s = [-1, 1]) translate([x, s * (b_in_w/2 + b_wall), 0]) mirror([0, s < 0 ? 1 : 0, 0])
+            multmatrix([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0]]) tab_dovetail(-1, b_t + 1, -1, b_wall + tab_fit_clr, tab_clr);
         for (y = rear_slot_y(kind)) slot(rear_x + rear_t/2, y, rear_t, rear_tab, rear_fit_clr);  // rear panel
         // caddy lock slots under both caddy walls, top plate only
         if (kind == "top") for (s = [-1, 1]) box([sp_hole_x[0], s * sp_hole_y[0], -1], [sp_hole_x[1], s * sp_hole_y[1], b_t + 1]);
         translate([b_xc, 0, b_t/2])
             honeycomb_cut([b_l - b_x0 - 2*b_vent_rim, b_in_w - 2*b_vent_rim], b_t + 2, hex_cell, hex_web,
                 concat([for (b = plate_bumps) bump_keep(b[0], b[1], b_xc, 0, plate_bump_af)],
-                       [for (x = tab_x, s = [-1, 1]) [x - tab_len/2 - b_keep_margin - b_xc, s*b_in_w/2 - 3 - b_keep_margin, x + tab_len/2 + b_keep_margin - b_xc, s*b_in_w/2 + 3 + b_keep_margin]],
+                       [for (x = tab_x, s = [-1, 1]) [x - tab_len/2 - tab_reach - b_keep_margin - b_xc, s*b_in_w/2 - 3 - b_keep_margin, x + tab_len/2 + tab_reach + b_keep_margin - b_xc, s*b_in_w/2 + 3 + b_keep_margin]],
                        [for (y = rear_slot_y(kind)) [rear_x - b_keep_margin - b_xc, y - rear_tab/2 - b_keep_margin, rear_x + rear_t + b_keep_margin - b_xc, y + rear_tab/2 + b_keep_margin]],
                        [for (s = [-1, 1]) if (kind == "top") [sp_hole_x[0] - b_keep_margin - b_xc, min(s * sp_hole_y[0], s * sp_hole_y[1]) - b_keep_margin,
                                            sp_hole_x[1] + b_keep_margin - b_xc, max(s * sp_hole_y[0], s * sp_hole_y[1]) + b_keep_margin]]));
@@ -34,12 +51,17 @@ module plate(kind = "top") {
 
 // ---- wall, own frame: flat, x b_x0..b_l, y = height 0..b_in_h with tabs
 //      beyond, z 0..b_wall, bumps on +z (the outer face when assembled).
-module wall() {
+//      `splay` is for the checks only: 0 shows the sideways path without the snap.
+module wall(splay = tab_splay) {
     difference() {
         union() {
             box([b_x0, 0, 0], [b_l, b_in_h, b_wall]);
-            for (x = tab_x, y0 = [-b_t, b_in_h])
-                translate([x - tab_len/2, y0, 0]) cube([tab_len, b_t, b_wall]);
+            // dovetailed tabs: (x, w, u) -> (x, -u, b_wall - w) at the bottom,
+            // (x, b_in_h + u, b_wall - w) at the top
+            for (x = tab_x) translate([x, 0, b_wall]) {
+                multmatrix([[1, 0, 0, 0], [0, 0, -1, 0], [0, -1, 0, 0]]) tab_dovetail(-0.01, b_t, 0, b_wall, 0, splay);
+                translate([0, b_in_h, 0]) multmatrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0]]) tab_dovetail(-0.01, b_t, 0, b_wall, 0, splay);
+            }
         }
         // rear panel side tab slot, both ends (symmetry), sized to the tab
         for (x = wall_slot_x) slot(x, rear_tab_z, rear_t, rear_tab, rear_fit_clr);

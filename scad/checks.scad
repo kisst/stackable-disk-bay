@@ -15,8 +15,8 @@ $fn = 24;   // checks are booleans, not prints; coarse arcs keep CGAL fast
 // an unknown name would export nothing, which check.sh reads as a pass
 checks = ["walls_in_plates", "rear_in_bay", "hdd_vs_rear", "plugs_vs_rear", "plugs_on_tongue",
           "caddy_in_bay", "bezel_on_tray", "bezel_engaged", "hdd_in_caddy", "tabs_engaged",
-          "rear_engaged", "rear_in_walls", "bezel_seats", "caddy_locked", "path_caddy_slide",
-          "lock_track", "bezel_lip_holds", "posts_hold", "path_bezel_lip", "plugs_vs_caddy", "path_caddy_past_panel", "path_wall_onto_panel", "path_u_drop", "path_top_drop", "stack", "side", "stack_holds",
+          "rear_engaged", "rear_in_walls", "wall_lift_locked", "wall_out_locked", "bezel_seats", "bezel_locked", "bezel_tabs_locked", "caddy_locked", "path_caddy_slide",
+          "lock_track", "bezel_lip_holds", "posts_hold", "path_bezel_lip", "plugs_vs_caddy", "path_caddy_past_panel", "path_wall_onto_panel", "path_rear_drop", "path_top_drop", "path_wall_slide", "stack", "side", "stack_holds",
           "side_holds", "array_diag_a", "array_diag_b", "array_stack2", "array_side2",
           "array_caddy_vs_neighbours",
           "adapter_in_caddy", "hdd25_in_adapter", "plugs25_vs_rear", "adapter_held", "hdd25_held",
@@ -49,12 +49,22 @@ if (check == "tabs_engaged") intersection() {
 }
 // expected NON-EMPTY: rear panel tabs engage (panel shifted 1 mm across hits walls/plates)
 if (check == "rear_engaged") intersection() { translate([0, 1.0, 0]) rear_placed(); union() { plates(); walls(); } }
+// expected NON-EMPTY: the wall tabs' dovetails hold a wall on the bottom
+// plate: lifted 1 mm, the flare catches; slid 1 mm outward, the splay does
+if (check == "wall_lift_locked") intersection() { bottom_plate(); translate([0, 0, 1.0]) left_wall_at(0); }
+if (check == "wall_out_locked")  intersection() { bottom_plate(); left_wall_at(1.0); }
 // expected NON-EMPTY: the panel's side tabs sit in the wall slots (panel
 // shifted 1 mm along the bay hits the walls alone, not just the plate slots)
 if (check == "rear_in_walls") intersection() { translate([1.0, 0, 0]) rear_placed(); walls(); }
 // expected NON-EMPTY: the bezel seats on the bay's front face (bay pushed
 // 1 mm forward hits the bezel plate)
 if (check == "bezel_seats") intersection() { bezel(); translate([1.0, 0, 0]) bay(); }
+// expected NON-EMPTY: the pull ledge's barb locks the bezel on (bezel slid
+// 1 mm forward along its tabs hits the barb's step)
+if (check == "bezel_locked") intersection() { caddy_tray(); translate([1.0, 0, 0]) bezel(); }
+// expected NON-EMPTY, by volume: the wall tabs' sloped outer faces lock it
+// on as well (bezel slid 1 mm forward cuts into the tabs alone)
+if (check == "bezel_tabs_locked") intersection() { bezel_tabs(); translate([1.0, 0, 0]) bezel(); }
 
 // ---- bezel lip --------------------------------------------------------------
 // expected NON-EMPTY: the lip props the top plate (it sits 0.2 mm under the
@@ -97,14 +107,18 @@ if (check == "lock_track") for (s = [-1, 1]) difference() {
     plates();
 }
 
-// ---- insertion path: walls slid onto the panel's side tabs (a U, in the
-//      air), the U lowered into the bottom plate, top plate on ----------------
+// ---- insertion path: the panel lowered into the bottom plate, the top
+//      plate lowered onto it, then each wall slid in sideways: its tabs into
+//      the plates' notches and onto the panel's side tab, all at once -----
 module bottom_plate() rotate([180, 0, 0]) plate("bottom");
-module left_wall_at(dy) translate([0, -b_in_w/2 - dy, 0]) rotate([90, 0, 0]) wall();
+module left_wall_at(dy, splay = tab_splay) translate([0, -b_in_w/2 - dy, 0]) rotate([90, 0, 0]) wall(splay);
 // expected EMPTY / face contact at every station
 if (check == "path_wall_onto_panel") intersection() { left_wall_at(4); rear_placed(); }                  // approaching sideways
-if (check == "path_u_drop")      intersection() { translate([0, 0, b_t/2]) { walls(); rear_placed(); } bottom_plate(); }   // half way down
-if (check == "path_top_drop")    intersection() { translate([0, 0, b_in_h + b_t/2]) plate("top"); union() { walls(); rear_placed(); } }
+if (check == "path_rear_drop")   intersection() { translate([0, 0, b_t/2]) rear_placed(); bottom_plate(); }   // half way down
+if (check == "path_top_drop")    intersection() { translate([0, 0, b_in_h + b_t/2]) plate("top"); rear_placed(); }
+// half way in, a wall without the splay clears both plates: the flare runs
+// along the slide, and the splay's 0.17 mm a tab end is all that snaps
+if (check == "path_wall_slide")  intersection() { left_wall_at(b_wall/2, 0); union() { bottom_plate(); translate([0, 0, b_in_h]) plate("top"); } }
 
 // ---- neighbours ---------------------------------------------------------------
 // The lower bay's plate bumps sit inside open cells of the upper bay's bottom

@@ -1,5 +1,9 @@
 # 0006 — Bezel finger notch instead of a handle
 
+> **Superseded by [0013](0013-second-print-push-tab-pull-ledge.md):** with
+> a 3.5" drive the notch gave no grip. A pull ledge on the tray, under the
+> bezel, took over, and the notch was removed.
+
 ## Context
 
 The bezel's grab bar stood 6 mm proud on two posts. Printed as a flat

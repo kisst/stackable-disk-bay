@@ -2,56 +2,63 @@
 
 One bay and one caddy per drive. Every part prints flat with no support; see
 the parts table in the [README](../README.md). Glue is never required: the
-tabs are friction fits. A drop of glue on the bay's tabs makes it permanent.
+wall tabs are dovetails that snap into notches at the plates' edges, and
+the rear panel's tabs are friction fits.
 
 Colours in the pictures: plates blue, walls green, rear panel purple, caddy
 tray orange, bezel brown, drive grey.
 
 ## Bay
 
-### 1. Walls onto the rear panel
+### 1. Rear panel into the bottom plate
 
-Hold the panel with its low groove on the outside and the open corner at
-the bottom, on the same side as the drive's SATA connector: on the left,
-seen from behind. Slide each wall
-sideways onto the panel's side tab, low groove on the outside and near the
-floor. Either end of a wall may face the rear. Panel and walls now stand
-as a U.
+Take the plate with **two** slots, bumps down, slots at the rear. Stand the
+rear panel in it, low groove on the outside and the open corner at the
+bottom, on the same side as the drive's SATA connector: on the left, seen
+from behind. Its two bottom tabs drop into the slots.
 
-![Walls sliding onto the rear panel's side tabs](img/step1.png)
+![Rear panel going down into the bottom plate](img/step1.png)
 
-### 2. Into the bottom plate
-
-Take the plate with **two** slots, bumps down, slots at the rear. Lower
-the U onto it: the walls' three bottom tabs and the panel's two bottom tabs
-all drop into their slots together.
-
-![Panel and walls going down into the bottom plate](img/step2.png)
-
-### 3. Top plate on
+### 2. Top plate on
 
 Take the plate with **six** slots, bumps up, the row of four at the rear.
-Drop it over the walls' top tabs and the panel's four top tabs. It caps
-the panel's side edges.
+Lower it onto the panel's four top tabs. It caps the panel's side edges.
+The plates are held only at the rear for now: keep their front ends apart
+by hand, about a wall's height, for the next step.
 
-![Top plate going on](img/step3.png)
+![Top plate going on](img/step2.png)
+
+### 3. Walls in from the sides
+
+Slide each wall in sideways, low groove on the outside and near the floor.
+Either end of a wall may face the rear. Its four top and four bottom tabs
+go into the notches at the plates' edges, and its slot goes onto the
+panel's side tab, all at once. Near the end the tabs snap past a slight
+narrowing at the notches' mouths. The wall is then locked: its tabs widen
+toward the plates' outer faces, so it cannot lift out, and toward its
+inner face, so it cannot slide back out. To take a wall off, push it out
+sideways from the inside, evenly along its length.
+
+![Walls sliding in from the sides](img/step3.png)
 
 ## Caddy
 
 ### 4. Bezel onto the tray
 
-Press the bezel onto the tray's three front tabs, one on each wall and the
-long one on the floor, with the finger notch at the top.
+Press the bezel onto the tray's five front tabs, two on each wall and the
+long one on the floor, with the lip at the top. The wall tabs flare out
+slightly and the floor tab's ledge has a small barb: press until the bezel
+clicks over all of them. It then stays on; to take it off again, push the
+wall tabs in from the outside and lift the bottom slot's edge over the barb
+with a small screwdriver.
 
 ![Bezel pressing onto the tray](img/step4.png)
 
 ### 5. Drive into the caddy
 
 Connector end to the rear. Tilt the drive onto the two fixed pins on the
-wall without fingers, its front corner under the bezel's lip, then press
-the other edge down: the two fingers flex out and their pins snap into the
-drive's side holes, and the bezel gives a little as the drive passes under
-the lip.
+wall without fingers, then press the other edge down: the two fingers flex
+out and their pins snap into the drive's side holes.
 
 ![Drive going into the caddy](img/step5.png)
 
@@ -71,12 +78,13 @@ plate and click into its two small slots as the bezel meets the bay.
 ### 7. Seated, and how to get it out
 
 Seated, the springs hold the caddy down and the bezel tight against the
-bay. To remove it, pull by the notch in the bezel's top edge, or push the
-tab that sticks out of the rear panel's open corner from behind.
+bay. To remove it, hook a fingernail or fingertip into the slot in the
+ledge that stands out under the bezel and pull, or push the tab that
+sticks out of the rear panel's open corner from behind.
 
-![Seated caddy, with the finger notch in the bezel's top edge](img/step7.png)
+![Seated caddy, the pull ledge under the bezel](img/step7.png)
 
-![The rear corner close up: the push tab under the drive's connector, in the rear panel's open corner](img/step8.png)
+![The rear close up: the push tab in the middle, under the plugs, in the rear panel's open corner](img/step8.png)
 
 ## Joining bays
 

@@ -45,7 +45,7 @@ Views (not prints), all in `out/` after a render:
 | --- | --- |
 | `assembled.png` | one assembled unit, every printed part plus the drive |
 | `testfit.png`, `testfit_open.png` | one unit with the drive and SATA plugs, one colour per part; the second with the top plate lifted off |
-| `assembly_steps.png` | assembly drawing: walls on the rear panel's side tabs, lifted above the bottom plate, top plate above |
+| `assembly_steps.png` | assembly drawing: rear panel in the bottom plate, top plate above, walls pulled out to the sides |
 | `join_stack.png`, `join_side.png`, `join_detail*.png` | how bays join, exploded and close up |
 | `assembly_parts.png` | the 2 × 2 combo, one colour per part class |
 | `assembly_units.png` | the 2 × 2 combo, one colour per bay |
@@ -69,21 +69,25 @@ Step by step with pictures: [docs/assembly.md](docs/assembly.md).
   edge down, the fingers flex out and the pins snap into the drive's side
   holes. The fingers are diagonal so their slots print without support; the
   recessed tip gives a fingernail purchase to release.
-- **Caddy assembly.** The bezel presses onto tabs on the tray's walls and
-  floor, a friction fit; glue is optional.
+- **Caddy assembly.** The bezel presses onto five tabs, two on each of the
+  tray's walls and one on the floor. It snaps over the wall tabs' slightly
+  flared outer faces and a small barb on the floor tab's pull ledge, which
+  then keep it from sliding off.
 - **Caddy in bay.** Slide it in until the bezel seats on the bay's front face.
   The top edge of each caddy wall is a leaf spring with a ramped bump. The
   bumps ride under the top plate's solid rim and drop into two slots when
   the caddy seats. The springs stay preloaded, holding the caddy down and the
   bezel tight against the bay. There is no honeycomb on the bump's track, so
-  there are no false clicks. To remove, pull by the notch cut into the
-  bezel's top edge; there is no handle, so the bezel prints flat. Or push it
-  out from behind: the tray's rear corner reaches through the rear panel's
-  open SATA corner as a push tab.
-- **Bay assembly.** Walls slid onto the rear panel's side tabs; that U
-  lowered into the bottom plate; top plate on. Every tab fits its slot
-  exactly. The panel's open corner clears the SATA plugs. Glue is
-  optional. A set of checks proves the insertion path.
+  there are no false clicks. To remove, pull by the ledge the tray floor
+  pushes out under the bezel; there is no handle, so the bezel prints flat.
+  Or push it out from behind: a tongue in the middle of the tray's rear edge
+  reaches through the rear panel's open SATA corner as a push tab.
+- **Bay assembly.** Rear panel into the bottom plate; top plate onto the
+  panel; then each wall slides in from the side. Its tabs are dovetails in
+  notches at the plates' edges, sloped both ways: steeply, so the wall
+  cannot lift off, and shallowly, so it snaps in and cannot slide back out.
+  The panel's open corner clears the SATA plugs. No glue. A set of checks
+  proves the insertion path and the locks.
 - **Bay to bay.** No extra parts. Every bump stands on its part's honeycomb
   lattice, offset so that the same part turned for the opposite face presents
   an open cell where each bump arrives: plates turned over for stacking,

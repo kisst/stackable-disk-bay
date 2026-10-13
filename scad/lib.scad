@@ -35,9 +35,15 @@ function bump_keep(x, y, cx, cy, af = wall_bump_af) = let(r = af / sqrt(3) + b_k
 // ---- honeycomb -----------------------------------------------------------
 // 2D field of hexagonal holes filling a `size` = [w, h] rectangle centred on
 // the origin. Only whole cells are emitted, so the border stays a clean web.
-// `keep` lists [x0, y0, x1, y1] rectangles (same frame) no cell may touch.
+// `keep` lists [x0, y0, x1, y1] rectangles (same frame) no cell may touch,
+// or [ox, oy, a, u0, u1, v0, v1]: a rectangle u0..u1 along a direction at
+// angle a from x and v0..v1 across it, from (ox, oy), for a keep-out that
+// runs on a slant. The cell counts as a circle of its circumradius.
 function hits_keep(cx, cy, r, keep) =
-    len([for (k = keep) if (cx + r > k[0] && cx - r < k[2] && cy + r > k[1] && cy - r < k[3]) 1]) > 0;
+    len([for (k = keep) if (len(k) == 4 ? cx + r > k[0] && cx - r < k[2] && cy + r > k[1] && cy - r < k[3]
+                                         : hits_slant(cx - k[0], cy - k[1], r, k)) 1]) > 0;
+function hits_slant(dx, dy, r, k) = let(u = dx * cos(k[2]) + dy * sin(k[2]), v = -dx * sin(k[2]) + dy * cos(k[2]))
+    u + r > k[3] && u - r < k[4] && v + r > k[5] && v - r < k[6];
 
 // `phase` shifts the cell grid so two fields on different parts can share
 // one lattice (their cells then line up when assembled).

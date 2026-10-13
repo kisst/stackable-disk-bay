@@ -1,5 +1,9 @@
 # 0012 — Service holes at the finger tips
 
+> **Amended by [0013](0013-second-print-push-tab-pull-ledge.md):** the
+> holes are placed from their fingers, no longer on the vent lattice, which
+> moves whenever the bay's length changes.
+
 ## Context
 
 On a test fit, a drive whose pins had engaged was almost impossible to

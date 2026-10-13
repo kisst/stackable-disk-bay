@@ -56,8 +56,8 @@ for p in "${parts[@]}"; do
     f="out/thin/${p}_$ax.stl"
     [ -n "${REPORT_ONLY:-}" ] || { rm -f "$f"; run openscad -D "part=\"$p\"" -D "axis=\"$ax\"" -D "pitch=$pitch" -o "$f" scad/thin.scad >"$f.log" 2>&1; }
     # OpenSCAD writes no file for an empty result, which here is the good case
-    if grep -q '^ERROR:' "$f.log" || { [ ! -f "$f" ] && ! grep -q "top level object is empty" "$f.log"; }; then
-      echo "FAIL  $p along $ax: OpenSCAD produced nothing, see $f.log"; fail=1
+    if grep -qE '^ERROR:|unknown variable|undefined operation|Unable to convert' "$f.log" || { [ ! -f "$f" ] && ! grep -q "top level object is empty" "$f.log"; }; then
+      echo "FAIL  $p along $ax: OpenSCAD error, undefined value or no output, see $f.log"; fail=1
     elif out=$(report "$f" "$ax"); then echo "PASS  $p along $ax: nothing under 0.8 mm"
     else echo "FAIL  $p along $ax: thin material (wafers 0.2 mm thick at the slices)"; echo "$out"; fail=1; fi
   done

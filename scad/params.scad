@@ -83,18 +83,16 @@ finger_tip_flat = 1.6;   // the beam's lowest corner is cut flat this wide: its 
 fingers = [ [hdd_side_hole_x[0], +1],
             [hdd_side_hole_x[1], -1] ];
 
-// bezel. A flat plate, printed front face down, that joins the tray by
-// tabs through slots, so neither part needs support. No handle: a drawer-
-// style finger notch cut into the top edge, near one corner, to pull by.
+// bezel. A flat honeycomb plate, printed front face down, that joins the
+// tray by tabs through slots, so neither part needs support. No handle and
+// no notch: the caddy is pulled by the tray's pull ledge, under the bezel.
 bezel_t      = 2;                     // a flat plate the size of the bay's front face
-bz_pull_w    = 36;                    // notch width at the top edge
-bz_pull_wb   = 20;                    // and at its bottom
-bz_pull_d    = 10;                    // depth down from the top edge
-bz_pull_r    = 4;                     // radius in the bottom corners
-bz_pull_f    = 3;                     // radius on the edge where the notch leaves the top edge
-bz_tab_h     = 8;                     // wall tab height (z), centred on the finger height
+bz_rim       = 2;                     // solid rim round the honeycomb, > 0.8 (two perimeters)
+bz_tab_h     = 8;                     // wall tab height (z)
+bz_tab_splay = 4;                     // deg: each wall tab's outer face leans out toward the bezel's
+                                      // face, so the bezel snaps over it (0.14 mm) and is locked on
 bz_tab_w     = 60;                    // floor tab width (y)
-bz_tab_clr   = 0.08;                  // per side across a wall tab's thickness: a friction fit
+bz_tab_clr   = 0.08;                  // on a wall tab's inner face; none on its sloped outer face
 bz_floor_clr = 0.05;                  // per side across the floor tab's thickness (the long slot)
 bz_end_clr   = 0.15;                  // per side along a tab's length: no grip there, room for elephant foot
 
@@ -107,16 +105,31 @@ b_in_w  = c_w + 2*slide_clr;          // 107.8
 b_in_h  = c_floor + hdd_h + 1.9;      // 30.0
 b_w     = b_in_w + 2*b_wall;          // 112.6
 b_h     = b_in_h + 2*b_t;             // 34.8
+bz_tab_z = [pin_z, b_in_h - pin_z];  // bezel wall tabs, two a wall, centres: at the finger height and
+                                      // as far under the bay's top, so the bezel is held at its top too
 b_l     = c_body_l;                   // 147.5 — front face; bezel sits outside
 b_x0    = -5;                         // rear face; room for the rear panel behind the drive
 b_xc    = (b_x0 + b_l) / 2;           // part centre along x (patterns are symmetric about it)
 b_z0    = -b_t;                       // bottom of the bay
 b_z1    = b_in_h + b_t;               // top of the bay
 
-// wall tabs through the plates
-tab_len  = 14;
-tab_x    = [b_xc - 54, b_xc, b_xc + 54];  // symmetric so both walls are one part
-tab_clr  = 0.15;                      // per side, tab in slot
+// wall tabs into the plates: four long ones, for grip. Symmetric about
+// b_xc so both walls are one part, and clear of the top plate's lock slots
+// (x 80 to 85) and their mirror image. Each plate's notch is open at its
+// edge (a box corner), so each tab end is dovetailed on both free axes:
+//   flare: wider toward the plate's outer face, so the wall cannot lift off
+//          the plate. The critical load, so steep.
+//   splay: wider toward the wall's inner face, so the wall cannot slide out
+//          off the plate's edge. The wall slides in sideways past it, so it
+//          is shallow: b_wall * tan(tab_splay), 0.17 mm a tab end, snaps.
+tab_len  = 22;                        // along the wall's outer face, where the tab leaves the wall
+tab_x    = [b_xc - 60, b_xc - 27, b_xc + 27, b_xc + 60];
+tab_flare = 15;                       // deg
+tab_splay = 4;                        // deg
+tab_reach = b_t * tan(tab_flare) + b_wall * tan(tab_splay);   // 0.81, the tab end's widest point past tab_len/2
+tab_clr  = 0;                         // per end, on the dovetail faces: none. The shallow splay turns play
+                                      // into slop: 0.05 mm would let a wall slide out 0.7 mm
+tab_fit_clr = 0.08;                   // per side across the wall's thickness, against the notch's inner face
 
 // rear panel: semi-closed back, tabs into the plates and walls, SATA cutout
 rear_t     = 2.4;
@@ -209,8 +222,8 @@ groove_d = 0.6;                       // engraving depth
 sp_x       = [56, 110];  // slit span along x: the beam's free length
 sp_rise    = 1.5;        // beam top above the wall rim (a low hump over the slit)
 sp_h       = 2.0;        // beam depth (z)
-sp_gap     = 1.6;        // slit height: room for the deflection plus bridge sag
-sp_lock    = 1.0;        // how far a relaxed bump would reach into the top plate
+sp_lock    = 1.5;        // how far a relaxed bump would reach into the top plate
+sp_gap     = sp_lock + 0.6;  // slit height: room for the deflection plus bridge sag
 sp_preload = 0.4;        // deflection left when seated: keeps the caddy down and the bezel home
 sp_flat    = 1.2;        // flat on the bump's crest
 sp_lead    = 30;         // rear ramp (meets the plate's front edge going in), from horizontal
@@ -221,7 +234,7 @@ sp_hump_r  = 6;          // radius on the hump's ramp corners
 sp_fillet_r = 1.5;       // fillet where the bump's ramps meet the hump
 sp_crest_r = 1.0;        // radius on the bump's crest corners
 sp_top     = c_wall_top + sp_rise;         // 28.5, beam top at rest
-sp_bump_h  = b_in_h - sp_top + sp_lock;    // 2.5, crest at 31.0 relaxed, 30.0 while sliding
+sp_bump_h  = b_in_h - sp_top + sp_lock;    // 3.0, crest at 31.5 relaxed, 30.0 while sliding
 sp_bump_x  = (sp_x[0] + sp_x[1]) / 2;      // crest centre
 sp_slit_z  = sp_top - sp_h - sp_gap;       // slit bottom
 // slot in the top plate: its front edge sits where the 45-degree front ramp
@@ -233,22 +246,17 @@ sp_hole_x  = [sp_bump_x - sp_flat/2 - (sp_lock - sp_preload) / tan(sp_lead) - sp
 // the bay wall's inner face, so the slot never runs under the wall's foot
 sp_hole_y  = [c_in_w/2 - slide_clr - 0.15, b_in_w/2];
 
-// ---------------------------------------------------------------- bezel finger notch, placed
-bz_pull_y    = b_w/2 - 8 - bz_pull_w/2;   // centre, toward the +y corner, 8 mm in from the side
-
 // ---------------------------------------------------------------- bezel lip
-// A lip on the bezel's back face, at the top, reaches under the top plate's
-// solid front rim when the caddy is seated and props the plate up in the
-// middle, where it sags most. 3.5 lattice pitches long, ending just past the
-// centre line: on the fixed-pin side, where the drive goes in first and sits
-// lowest, and clear of the finger notch. Near the edges the caddy walls'
-// front posts hold the plate instead. Kept minimal: it reaches 1.5 mm over
-// the drive's front edge, and the drive passes under it by flexing the bezel.
-bz_lip_w  = 3.5 * hex_dx;                     // 27.3, along y
-bz_lip_y1 = 1.2;                              // +y end, just past the centre line
-bz_lip_y0 = bz_lip_y1 - bz_lip_w;             // -26.1
+// A short lip on the bezel's back face, at the top, reaches under the top
+// plate's solid front rim when the caddy is seated and props the plate up
+// in the middle, where it sags most, and nowhere else. Near the edges the
+// caddy walls' front posts hold the plate instead. It reaches 1.5 mm over
+// the drive's front edge; the drive passes under it by flexing the bezel.
+bz_lip_w  = 10;                               // along y, centred
+bz_lip_y1 = bz_lip_w / 2;                     // +y end
+bz_lip_y0 = bz_lip_y1 - bz_lip_w;             // -y end
 bz_lip_d  = 2;                                // into the bay, on the plate's solid rim
-bz_lip_t  = 1.4;                              // its underside 0.3 above a 26.1 mm drive
+bz_lip_t  = 1.4;                              // its underside 0.3 above a 26.1 mm drive's top
 bz_lip_top = b_in_h - 0.2;                    // 0.2 under the plate: catches a sagging plate,
                                               // never binds in a bay printed a little short
 bz_lip_c  = 0.5;                              // lead-in chamfer on the rear top edge (0.9 left at the tip)
@@ -263,17 +271,19 @@ c_post_h = b_in_h - 0.2;                      // 29.8: catches a sagging plate, 
                                               // a bay printed a little short
 
 // ---------------------------------------------------------------- caddy push tab
-// The tray's rear +y corner reaches back through the rear panel's open SATA
-// corner and past the bay's rear face, so the caddy can be pushed out from
-// behind without pulling on the bezel joint. A floor-level plate runs under
-// the SATA plugs (their housings start 2.4 mm up); a rib in line with the
-// side wall, blended into the wall's rear edge by a large fillet, stiffens it.
-push_x1     = b_x0 - 5;          // rear end, 5 mm proud of the bay's rear face
-push_w      = 10;                // width from the tray's outer face (y), under the plugs
-push_h      = 6;                 // rib height, in line with the side wall
-push_fillet = 8;                 // fillet between the rib and the wall's rear edge
+// A floor-level tongue in the middle of the tray's rear edge reaches back
+// through the rear panel's open SATA corner and just past the bay's rear
+// face, so the caddy can be pushed out from behind without pulling on the
+// bezel joint. Pushed near its centre line, the caddy slides straight; a
+// push at a corner racked it in the bay. It is the floor's thickness and
+// runs under the SATA plugs (their housings start 2.4 mm up). It starts
+// as close to the centre line as the panel's open corner allows.
+push_x1     = b_x0 - 2;          // rear end, 2 mm proud of the bay's rear face
+push_y0     = sata_notch_y + 0.8; // -y edge: clear of the corner's edge with the caddy's side play
+push_w      = 10;                // width (y): -2.2 .. 7.8, its centre 2.8 mm off the centre line
 push_r      = 3;                 // plan radius on the two rear corners
-push_nose   = 2.5;               // radius on the rib's top rear edge
+push_root_r = 3;                 // plan fillet where it leaves the floor's rear edge
+push_nose   = 1.5;               // its top rear edge rounded down toward the bed
 
 // ================================================================ accessories
 // ---------------------------------------------------------------- 2.5" drive (SFF-8201)
@@ -306,6 +316,30 @@ h25_y1 = hdd_w/2 - ad_strip_t - ad_clr;            // the 2.5" drive's +y (conne
 h25_dy = h25_y1 - hdd_w/2;                         // its connector, relative to a 3.5" drive's
 h25_x1 = h25_l + 0.5;                              // front of the 2.5" drive pocket
 ad_in_y = h25_y1 - h25_w - ad_clr;                 // inner face of the -y rail
+
+// ---------------------------------------------------------------- pull ledge
+// The front counterpart of the push tab: the middle of the floor tab, which
+// passes through the bezel's bottom slot, runs on past the bezel's face as a
+// ledge. A slot through it takes a fingernail or fingertip, and the pull
+// goes into the tray's floor, not through the bezel joint. It also locks
+// the bezel on: just in front of the bezel's face, where it is still almost
+// the floor tab's full width, it stands pull_barb taller than the floor, on a
+// short ramp; the rest of it is flat, and narrows on a rounded taper to the
+// front end. The
+// bezel's slot rides up the ramp as the bezel is pressed on, snaps down
+// behind the step, and can then not slide forward off the tray.
+pull_x      = 10;                // how far it stands proud of the bezel's face
+pull_w      = 30;                // width (y) at its front end, centred
+pull_taper  = 8;                 // it narrows from the floor tab's width at the bezel's face to pull_w over this length
+pull_r      = 3;                 // plan radius on its convex corners
+pull_root_r = 6;                 // plan fillet where the taper meets the straight front end
+pull_barb_w = 44;                // the step's width (y), centred: ends square, inside the taper
+pull_barb   = 0.4;               // step above the floor's top: what the bezel's slot snaps over
+pull_barb_gap = 0.1;             // the step's face, in front of the bezel's face
+pull_ramp   = 2.4;               // the ramp's length, from the step down to the floor's top (~10 degrees)
+pull_hole   = [4, 18];           // grip slot through the ledge (x, y), round ends
+pull_hole_x = 3;                 // its rear edge, from the bezel's face: clear of the ramp
+pull_chamfer = 0.5;              // 45-degree chamfer on its top front edge
 
 // ---------------------------------------------------------------- feet
 // A foot locks into three neighbouring open cells of a bottom plate with three

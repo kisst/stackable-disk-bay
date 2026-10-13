@@ -1,6 +1,6 @@
 // Toolless caddy: drive drops in, pins engage the side holes, no screws.
 // Two flat prints: the tray (floor, walls, diagonal fingers, pins) on its
-// floor, and the bezel (plate, handle) front face down. Tabs on the tray's
+// floor, and the bezel (a honeycomb plate) front face down. Tabs on the tray's
 // walls and floor pass through slots in the bezel; press fit, glue optional.
 include <lib.scad>
 
@@ -79,17 +79,17 @@ module finger_cuts(s, xp, zt, dir) {
 module pin_fingers_cuts() { for (f = fingers) finger_cuts(1, f[0], pin_z, f[1]); }
 
 // Service holes: once the pins are in a drive's holes the fingers are hard
-// to lift out. One honeycomb cell, on the wall lattice, opens into each
+// to lift out. One hex cell, the vents' shape and size, opens into each
 // slot just beyond the finger's tip, at pin height, so a small screwdriver
-// can get at the tip and pry it out. The cell is the first one on the
-// pin's row past the slot's mitred tip corner; it overlaps that corner,
-// so the hole and the slot are one opening, and stays clear of the beam.
-function service_cell(f) = let(
-        j  = round((pin_z - b_in_h/2) / hex_dy),
-        x0 = b_xc + (j % 2 == 0 ? 0 : hex_dx/2),
-        xt = f[0] - f[1] * (slot_half * sqrt(2) + c_hex_cell/2),
-        i  = round((xt - x0) / hex_dx))
-    [x0 + i * hex_dx, b_in_h/2 + j * hex_dy];
+// can get at the tip and pry it out. The cell sits on the lattice row at
+// pin height, just past the slot's mitred tip corner: it overlaps that
+// corner by service_overlap, so the hole and the slot are one opening, and
+// stays clear of the beam. Along x it is placed from the finger, not on
+// the lattice: the lattice is centred on the bay, so it moves whenever the
+// bay's length does, and the fingers (at the drive's holes) do not.
+service_overlap = 1.0;
+function service_cell(f) = let(j = round((pin_z - b_in_h/2) / hex_dy))
+    [f[0] - f[1] * (slot_half * sqrt(2) + c_hex_cell/2 - service_overlap), b_in_h/2 + j * hex_dy];
 // The cell's flat side facing the finger meets the slot's 45-degree outer
 // edges a little inside its corners, which would leave a small step of wall
 // above and below. Each slanted edge is carried on to the slot edge instead,
@@ -169,23 +169,24 @@ module spring_profile2d(defl = 0) {
 }
 module spring_bumps(defl = 0) for (s = [-1, 1]) wall_profile(s) spring_profile2d(defl);
 
-// keep-out rectangle (field frame centred at cx, cz) round a finger: the
-// bounding box of the slot ring and the recess, which reach slot_half beside
-// the beam and finger_w/2 past its root, plus the web margin
-function finger_corners(xp, zt, dir) = let(L = finger_len(zt), a = dir > 0 ? finger_angle : 180 - finger_angle)
-    [for (u = [-slot_half, L + finger_w/2], v = [-slot_half, slot_half])
-        [xp + u * cos(a) - v * sin(a), zt + u * sin(a) + v * cos(a)]];
-function finger_keep(xp, zt, dir, cx, cz) = let(c = finger_corners(xp, zt, dir), m = b_keep_margin)
-    [min([for (p = c) p[0]]) - m - cx, min([for (p = c) p[1]]) - m - cz,
-     max([for (p = c) p[0]]) + m - cx, max([for (p = c) p[1]]) + m - cz];
+// keep-out round a finger (field frame centred at cx, cz), slanted with the
+// beam: the slot ring and the recess, which reach slot_half beside the beam
+// and finger_w/2 past its root, plus the web margin. A box square to the
+// wall would also blank the two triangles beside the slot.
+function finger_keep(xp, zt, dir, cx, cz) = let(L = finger_len(zt), m = b_keep_margin)
+    [xp - cx, zt - cz, dir > 0 ? finger_angle : 180 - finger_angle,
+     -slot_half - m, L + finger_w/2 + m, -slot_half - m, slot_half + m];
 
 // honeycomb in the caddy walls, on the bay wall's lattice so the cells line up
 module wall_vents(s) {
     fc_x = (c_rear_gap + c_body_l) / 2;  fc_z = c_wall_top / 2;
     keep = concat(
         s > 0 ? [for (f = fingers) finger_keep(f[0], pin_z, f[1], fc_x, fc_z)] : [],
+        s > 0 ? [for (f = fingers) let(c = service_cell(f), r = c_hex_cell / sqrt(3) + b_keep_margin)
+                    [c[0] - r - fc_x, c[1] - r - fc_z, c[0] + r - fc_x, c[1] + r - fc_z]] : [],
         [[sp_x[0] - b_keep_margin - fc_x, sp_slit_z - b_keep_margin - fc_z, sp_x[1] + b_keep_margin - fc_x, 50]],
-        s < 0 ? [for (x = hdd_side_hole_x) [x - 4 - fc_x, pin_z - 4 - fc_z, x + 4 - fc_x, pin_z + 4 - fc_z]] : [],
+        s < 0 ? [for (x = hdd_side_hole_x) let(r = pin_d/2 + b_keep_margin)
+                    [x - r - fc_x, pin_z - r - fc_z, x + r - fc_x, pin_z + r - fc_z]] : [],
         [[c_body_l - 8 - fc_x, -50, c_body_l + 5 - fc_x, 50]]);   // bezel tab zone
     translate([fc_x, s * (c_in_w/2 + c_wall/2), fc_z]) rotate([90, 0, 0])
         honeycomb_cut([c_body_l - c_rear_gap - 2*c_wall_rim, c_wall_top - 2*c_wall_rim], c_wall + 2,
@@ -201,40 +202,82 @@ module pins() {
         translate([f[0], c_in_w/2 + 0.01, pin_z]) rotate([90, 0, 0]) pin();
 }
 
+// wall tab plan (x, y) on the +y side, grown by c on its inner face and run
+// on by e past both of the bezel's faces: the outer face leans out by
+// bz_tab_splay toward the bezel's face, from the wall's outer face at the
+// bezel's back face. The slot fits that face with no clearance: a shallow
+// slope turns any play into slop, as on the bay's wall tabs.
+module bz_tab2d(c = 0, e = 0) {
+    x0 = c_body_l;  x1 = x0 + bezel_t;  t = tan(bz_tab_splay);  yo = c_w/2;
+    polygon([[x0 - e, c_in_w/2 - c], [x1 + e, c_in_w/2 - c], [x1 + e, yo + (bezel_t + e) * t], [x0 - e, yo - e * t]]);
+}
+module bz_wall_tabs(c = 0, e = 0, ce = 0)
+    for (s = [-1, 1], z = bz_tab_z) mirror([0, s < 0 ? 1 : 0, 0])
+        translate([0, 0, z - bz_tab_h/2 - ce]) linear_extrude(height = bz_tab_h + 2 * ce) bz_tab2d(c, e);
 // tabs on the tray that pass through the bezel plate
 module bezel_tabs() {
     x0 = c_body_l;
-    for (s = [-1, 1])   // wall tabs
-        box([x0 - 0.01, s * c_in_w/2, pin_z - bz_tab_h/2], [x0 + bezel_t, s * (c_in_w/2 + c_wall), pin_z + bz_tab_h/2]);
+    intersection() {   // wall tabs, starting just inside the wall's front end
+        bz_wall_tabs(0, 0.01);
+        translate([x0 - 0.01, -b_w, -1]) cube([bezel_t + 0.01, 2 * b_w, b_h + 2]);
+    }
     box([x0 - 0.01, -bz_tab_w/2, 0], [x0 + bezel_t, bz_tab_w/2, c_floor]);   // floor tab
+}
+// pull ledge: plan (x, y) of the ledge and the floor tab's end it leaves,
+// the floor tab's width at the bezel's face, tapering to pull_w, convex
+// corners rounded, the taper's inside corners filleted; side profile (x, z):
+// flat from the chamfered front end, then the barb's short ramp up to the step
+module pull_plan2d() {
+    xf = c_body_l + bezel_t;                       // the bezel's face
+    x1 = xf + pull_x;                              // the front end
+    w0 = bz_tab_w / 2;  w1 = pull_w / 2;  xt = xf + pull_taper;
+    offset(r = -pull_root_r) offset(delta = pull_root_r)
+    offset(r = pull_r) offset(delta = -pull_r)
+        polygon([[c_body_l - 2 * pull_r, -w0], [xf, -w0], [xt, -w1], [x1, -w1],
+                 [x1, w1], [xt, w1], [xf, w0], [c_body_l - 2 * pull_r, w0]]);
+}
+module pull_side2d() {
+    xs = c_body_l + bezel_t + pull_barb_gap;        // the step's face
+    x1 = c_body_l + bezel_t + pull_x;               // the front end
+    polygon([[c_body_l - 1, 0], [x1, 0], [x1, c_floor - pull_chamfer], [x1 - pull_chamfer, c_floor],
+             [xs + pull_ramp, c_floor], [xs, c_floor + pull_barb], [xs, c_floor], [c_body_l - 1, c_floor]]);
+}
+// the grip slot, a stadium in plan
+module pull_hole2d() {
+    r = pull_hole[0] / 2;  x = c_body_l + bezel_t + pull_hole_x + r;
+    hull() for (s = [-1, 1]) translate([x, s * (pull_hole[1] / 2 - r)]) circle(r = r);
+}
+module pull_ledge() {
+    difference() {
+        intersection() {
+            linear_extrude(height = c_floor + pull_barb) pull_plan2d();
+            translate([0, b_w, 0]) rotate([90, 0, 0]) linear_extrude(height = 2 * b_w) pull_side2d();
+            // only in front of the bezel's face: the tab in the slot is bezel_tabs();
+            // the barb only across pull_barb_w, square ends inside the taper's edges
+            translate([c_body_l + bezel_t - 0.01, 0, 0]) union() {
+                translate([0, -b_w, -1]) cube([pull_x + 1, 2 * b_w, c_floor + 1]);
+                translate([0, -pull_barb_w/2, 0]) cube([pull_x + 1, pull_barb_w, c_floor + pull_barb + 1]);
+            }
+        }
+        translate([0, 0, -1]) linear_extrude(height = c_floor + pull_barb + 2) pull_hole2d();
+    }
 }
 module bezel_slots() {
     x0 = c_body_l;
-    c = bz_tab_clr;  cf = bz_floor_clr;  ce = bz_end_clr;   // across the tab, across the floor tab, along a tab
-    for (s = [-1, 1])
-        box([x0 - 1, s * c_in_w/2 - s*c, pin_z - bz_tab_h/2 - ce], [x0 + bezel_t + 1, s * (c_in_w/2 + c_wall) + s*c, pin_z + bz_tab_h/2 + ce]);
+    c = bz_tab_clr;  cf = bz_floor_clr;  ce = bz_end_clr;   // a wall tab's inner face, across the floor tab, along a tab
+    bz_wall_tabs(c, 1, ce);
     box([x0 - 1, -bz_tab_w/2 - ce, -cf], [x0 + bezel_t + 1, bz_tab_w/2 + ce, c_floor + cf]);
 }
 
-// finger notch in the bezel's top edge, (y, z): a trapezoid with round
-// bottom corners, its mouth eased into the top edge
-module finger_notch2d() {
-    y = bz_pull_y;  zt = b_z1;  zb = b_z1 - bz_pull_d;
-    offset(r = -bz_pull_f) offset(delta = bz_pull_f)               // ease the mouth
-    union() {
-        offset(r = bz_pull_r) offset(delta = -bz_pull_r)          // round the bottom
-            polygon([[y - bz_pull_w/2, zt + 10], [y - bz_pull_wb/2, zb], [y + bz_pull_wb/2, zb], [y + bz_pull_w/2, zt + 10]]);
-        translate([-b_w, zt]) square([2 * b_w, 20]);              // everything above the top edge
-    }
-}
-
-// keep-out for the bezel honeycomb round the notch, in the field's frame
-// (u = b_in_h/2 - z, v = y): the trapezoid in 1 mm bands, each as wide as
-// the notch at its upper edge, grown by one web
-function notch_keep() = let(m = bz_hex_web, zb = b_z1 - bz_pull_d, n = ceil(bz_pull_d))
-    [for (i = [0 : n - 1]) let(z0 = zb + i * bz_pull_d / n, z1 = zb + (i + 1) * bz_pull_d / n,
-                               hw = (bz_pull_wb + (bz_pull_w - bz_pull_wb) * (z1 - zb) / bz_pull_d) / 2 + m)
-        [b_in_h/2 - z1, bz_pull_y - hw, b_in_h/2 - z0 + m, bz_pull_y + hw]];
+// keep-outs for the bezel honeycomb, in the field's frame (u = b_in_h/2 - z,
+// v = y): whole cells stay a margin away from the tab slots and from the
+// lip's foot, which must stand on solid plate
+function bz_zone(z0, z1, y0, y1, m = b_keep_margin) = [b_in_h/2 - z1 - m, min(y0, y1) - m, b_in_h/2 - z0 + m, max(y0, y1) + m];
+function bezel_keep() = concat(
+    [bz_zone(-bz_floor_clr, c_floor + bz_floor_clr, -bz_tab_w/2 - bz_end_clr, bz_tab_w/2 + bz_end_clr)],
+    [for (s = [-1, 1], z = bz_tab_z) bz_zone(z - bz_tab_h/2 - bz_end_clr, z + bz_tab_h/2 + bz_end_clr,
+                               s * (c_in_w/2 - bz_tab_clr), s * (c_w/2 + bezel_t * tan(bz_tab_splay)))],
+    [bz_zone(bz_lip_top - bz_lip_t, bz_lip_top, bz_lip_y0, bz_lip_y1)]);
 
 // lip profile in (x, z), from the bezel's back face rearward, chamfered on
 // the rear top edge so a sagging top plate rides up onto it
@@ -245,52 +288,40 @@ module bezel_lip() {
 }
 
 // Bezel: a flat 2 mm plate the size of the bay's front face. It seats on
-// the front edge of the plates and walls, carries the intake honeycomb and
-// the finger notch, joins the tray through three tab slots, and carries the
-// lip that props up the top plate.
+// the front edge of the plates and walls, is honeycomb over its whole face
+// inside a narrow rim, joins the tray through three tab slots, and carries
+// the lip that props up the top plate. The tray's pull ledge stands out
+// under it.
 module bezel() {
     x0 = c_body_l;
     bezel_lip();
     difference() {
         box([x0, -b_w/2, b_z0], [x0 + bezel_t, b_w/2, b_z1]);
         bezel_slots();
-        translate([x0 - 1, 0, 0]) rotate([90, 0, 90]) linear_extrude(height = bezel_t + 2) finger_notch2d();
-        // honeycomb intake over the drive's front face: only the cells that
-        // would come within a web of the notch are skipped, and the zones
-        // round the tab slots stay solid
-        difference() {
-            translate([x0 + bezel_t/2, 0, b_in_h/2]) rotate([0, 90, 0])
-                honeycomb_cut([b_in_h - 8, b_in_w - 16], bezel_t + 2, bz_hex_cell, bz_hex_web, notch_keep());
-            box([x0 - 1, -bz_tab_w/2 - 3, -1], [x0 + bezel_t + 1, bz_tab_w/2 + 3, c_floor + 3]);
-            for (s = [-1, 1])
-                box([x0 - 1, s * (c_in_w/2 - 3), pin_z - bz_tab_h/2 - 3], [x0 + bezel_t + 1, s * (c_w/2 + 3), pin_z + bz_tab_h/2 + 3]);
-        }
+        // honeycomb over the whole face, centred on it
+        translate([x0 + bezel_t/2, 0, b_in_h/2]) rotate([0, 90, 0])
+            honeycomb_cut([b_h - 2 * bz_rim, b_w - 2 * bz_rim], bezel_t + 2, bz_hex_cell, bz_hex_web, bezel_keep());
     }
 }
 
-// ---- push tab at the rear +y corner ---------------------------------------
-// rib profile in the wall's plane (x, z): a block from the rear end into the
-// wall, filleted into the wall's rear edge, top rear edge rounded. The stub
-// into the wall lies inside wall material; the wall's cuts come after.
-module push_rib2d() {
-    offset(r = push_nose) offset(delta = -push_nose)
-    offset(r = -push_fillet) offset(delta = push_fillet)
-    union() {
-        translate([push_x1, 0]) square([c_rear_gap + 6 - push_x1, push_h]);
-        translate([c_rear_gap, 0]) square([6, c_wall_top - 3]);
+// ---- push tab in the middle of the rear edge --------------------------------
+// plan (x, y): the tongue with rounded rear corners, filleted into a strip
+// of the floor's solid rear frame (the strip lies inside the floor)
+module push_plan2d() {
+    offset(r = -push_root_r) offset(delta = push_root_r) union() {
+        offset(r = push_r) offset(delta = -push_r)
+            translate([push_x1, push_y0]) square([c_rear_gap + 2 * push_r - push_x1, push_w]);
+        translate([c_rear_gap, push_y0 - 3 * push_root_r]) square([c_frame, push_w + 6 * push_root_r]);
     }
 }
+// side profile (x, z): the floor's thickness, its top rear edge rounded down
+module push_side2d() {
+    offset(r = push_nose) offset(delta = -push_nose) translate([push_x1, -push_nose]) square([c_rear_gap + c_frame - push_x1, c_floor + push_nose]);
+}
 module push_tab() {
-    y0 = c_w/2 - push_w;                           // inner edge; the tab runs to the tray's +y outer face
     intersection() {
-        union() {
-            wall_profile(1) push_rib2d();
-            box([push_x1, y0, 0], [c_rear_gap + 6, c_w/2, c_floor]);
-        }
-        // plan: both rear corners rounded
-        translate([0, 0, -1]) linear_extrude(height = c_wall_top + 2)
-            offset(r = push_r) offset(delta = -push_r)
-                translate([push_x1, y0]) square([c_rear_gap + 20 - push_x1, push_w]);
+        linear_extrude(height = c_floor) push_plan2d();
+        translate([0, b_w, 0]) rotate([90, 0, 0]) linear_extrude(height = 2 * b_w) push_side2d();
     }
 }
 
@@ -304,6 +335,7 @@ module caddy_tray(protrusions = true, spring_defl = 0) {
             wall_solid(-1);
             wall_solid(1);
             bezel_tabs();
+            pull_ledge();
             spring_bumps(spring_defl);
             push_tab();
         }

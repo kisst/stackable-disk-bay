@@ -1,5 +1,10 @@
 # 0009 — Rear panel side tabs back; walls onto the panel first
 
+> **Assembly order superseded by [0014](0014-dovetailed-wall-joint.md):**
+> the wall tabs are dovetails that only go in sideways, so the panel goes
+> into the plates first and the walls slide in last. The side tabs stay,
+> and each slot still sees one direction of travel only.
+
 ## Context
 
 ADR 0005 replaced the rear panel's side tabs with tongues in blind grooves

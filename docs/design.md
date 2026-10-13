@@ -43,7 +43,7 @@ side. Shorter or lower drives (20.2 mm) fit; only the hole positions matter.
 
 A tray: honeycomb floor in a 6 mm solid frame, two 2.4 mm walls 25 mm tall
 with honeycomb on the bay wall's lattice, and a front bezel the size of the
-bay's face with a finger notch.
+bay's face, honeycomb all over.
 
 - **Fixed pins** on the −y wall at the two hole positions, conical tips.
 - **Finger pins** on the +y wall sit at the lower ends of two cantilever
@@ -58,68 +58,99 @@ bay's face with a finger notch.
   at the root: fine in PETG, acceptable in PLA. The recessed outer face
   gives a fingernail the purchase to release, but a test fit showed that
   is not enough once the pins are in a drive's holes.
-- **Service holes**: one honeycomb cell on the wall lattice beside each
-  finger's tip, at pin height (the lattice row at 8.25 mm), the first cell
-  past the slot's tip corner: x 137.55 for the front finger, 20.55 for the
-  rear. It overlaps the slot's end, so hole and slot are one opening, and
-  a small screwdriver gets at the tip to pry the pin out of the drive. The
+- **Service holes**: one hex cell, the vents' shape and size, beside each
+  finger's tip, on the wall lattice's row at pin height (8.25 mm), just past
+  the slot's tip corner: x 138.04 for the front finger, 20.56 for the rear.
+  It overlaps the slot's end by 1 mm, so hole and slot are one opening, and
+  a small screwdriver gets at the tip to pry the pin out of the drive. It is
+  placed from its finger, not on the lattice: the lattice is centred on the
+  bay and moves when the bay's length changes, the fingers do not. The wall
+  vents keep a web away from it. The
   cell's slanted edges run on to the slot's edges, so no step of wall is
   left where the two meet, and the wedge of wall above and below each
   meeting point is cut flat where it is 1 mm wide, so its first layers are
-  not thinner than two perimeters. It
-  clears the beam by 0.2 mm (front) and 0.7 mm (rear); `service_holes()`
-  asserts that. The 3 mm rim above a finger
+  not thinner than two perimeters. It clears the beam by 0.7 mm;
+  `service_holes()` asserts a clearance. The 3 mm rim above a finger
   is measured from the slot's highest point, the corner of its ring at the
   root, which sits 3 mm above the beam's centreline.
-- **Spring lock** for retention in the bay, on the top edge of both walls.
-  A 54 mm slit under the rim (x 56 to 110, between the +y wall's finger
-  slots) frees a 2 mm beam anchored at both ends, under a 1.5 mm hump that
-  rises from the rim on 15° ramps with 6 mm radii. A bump in the beam's
+- **Spring lock** for retention in the bay, on the top edge of both walls. A
+  54 mm slit, 2.1 mm high, under the rim (x 56 to 110, between the +y wall's
+  finger slots) frees a 2 mm beam anchored at both ends, under a 1.5 mm hump
+  that rises from the rim on 15° ramps with 6 mm radii. A bump in the beam's
   middle rides on the top plate's underside. It has a 30° lead-in ramp facing
-  the rear, a 45° holding ramp facing the front and a 1.2 mm crest, with
-  1.5 mm fillets at its foot and a 1 mm radius on the crest, and reaches
-  1.0 mm into the plate when relaxed. Its track
-  lies under the plate's solid rim, outside the honeycomb, so it has nothing
-  to drop into until it reaches its slot at the seated position. The slot's
-  front edge meets the holding ramp with 0.4 mm of deflection left, so the
-  spring keeps pushing the caddy down and the bezel onto the bay. Anchored at
-  both ends, the beam's underside prints as a bridge; the bump stands upright
-  on the edge. The beam rate is about 4 N/mm in PETG and 7 N/mm in PLA per
-  side, at 0.8 % strain when pressed flat. A finger in the bezel's notch
-  overcomes the 45° ramps.
-- **Push tab** at the rear +y corner, so the caddy can be pushed out from
-  behind without loading the bezel joint. The tray's floor corner runs back
-  through the rear panel's open SATA corner and ends 5 mm behind the bay's
-  rear face. It is a floor-level plate 10 mm wide, which passes under the
-  SATA plugs (their housings start 2.4 mm up), plus a 6 mm rib in line with
-  the side wall that sweeps up into the wall's rear edge on an 8 mm fillet.
-  Both rear corners are rounded in plan and the rib's top edge is rounded.
-  It prints on the bed with the tray.
+  the rear, a 45° holding ramp facing the front and a 1.2 mm crest, with 1.5
+  mm fillets at its foot and a 1 mm radius on the crest, and reaches 1.5 mm
+  into the plate when relaxed. Its track lies under the plate's solid rim,
+  outside the honeycomb, so it has nothing to drop into until it reaches its
+  slot at the seated position. The slot's front edge meets the holding ramp
+  with 0.4 mm of deflection left, so the spring keeps pushing the caddy down
+  and the bezel onto the bay. Anchored at both ends, the beam's underside
+  prints as a bridge; the bump stands upright on the edge. The beam rate is
+  about 4 N/mm in PETG and 7 N/mm in PLA per side, at 1.2 % strain when
+  pressed flat. A pull on the ledge overcomes the 45° ramps.
+- **Push tab** in the middle of the rear edge, so the caddy can be pushed
+  out from behind without loading the bezel joint. A tongue on the floor's
+  rear edge, as thick as the floor, runs back through the rear panel's open
+  SATA corner and ends 2 mm behind the bay's rear face. It is 10 mm wide,
+  y −2.2 to 7.8: as near the centre line as the open corner allows, so a
+  push does not turn the caddy in its side play and jam it, as one at the
+  corner did. It passes under the SATA plugs, whose housings start 2.4 mm
+  up. Its rear corners are rounded in plan, its top rear edge is rounded
+  down toward the bed, and it is filleted into the floor's rear edge. It
+  prints on the bed with the tray.
+- **Pull ledge** at the front, the push tab's counterpart. The floor tab that
+  passes through the bezel's bottom slot runs on 10 mm past the bezel's face as
+  a flat, floor-thick ledge under the honeycomb, 60 mm wide at the face and
+  narrowing to 30 mm over 8 mm on a rounded taper. A 4 × 18 mm slot through it,
+  round-ended, 3 mm from the bezel, takes a fingernail, fingertip or
+  screwdriver, and the pull goes into the tray floor rather than through the
+  bezel's friction joint. Its corners are rounded in plan and the taper is
+  filleted into the front end. It also locks the bezel on: 0.1 mm in front of
+  the bezel's face it stands 0.4 mm taller than the floor, across 44 mm, and a
+  2.4 mm ramp (about 10°) takes it back down to the floor's top. Pressed on, the
+  bezel's bottom slot rides up the ramp and snaps down behind the step, and the
+  bezel can no longer slide forward off its tabs (check: `bezel_locked`).
 - **Wall vents**: the caddy walls reach 27 mm and would otherwise cover
   the bay's side honeycomb, so they carry the same 6 mm lattice, phased to
   the bay wall's, with solid zones round fingers, pins and the bezel tabs.
-  The zone round a finger is the bounding box of its slot ring and recess
-  plus the 1.5 mm web margin, so no cell comes near a slot's tip corner.
+  The zone round a finger is its slot ring and recess plus the 1.5 mm web
+  margin, slanted with the beam, so no cell comes near a slot's tip corner
+  and the triangles beside the slot are vented too; the zone round a fixed
+  pin is the pin plus the same margin. Both were boxes square to the wall,
+  which blanked two cells above each pin and one beside each finger.
 - **Bezel** is a flat 2 mm plate the size of the bay's front face. It seats
-  on the front edge of the plates and walls and carries a honeycomb intake
-  over the drive's front. There is no handle. A drawer-style notch in the
-  top edge near the +y corner, 36 mm wide, 14 mm deep, with rounded corners,
-  gives a place to pull by; the honeycomb stays solid round it. It joins the
-  tray by three tabs, one on each wall end and one on the floor, through
-  slots in the plate. It is a separate print, front face down, because its
-  lower edge reaches below the tray's floor.
+  on the front edge of the plates and walls, 0.5 mm in front of the drive.
+  The honeycomb covers the whole face inside a 2 mm rim, centred on the
+  face; whole cells are left out only within 1.5 mm of the five tab slots
+  and of the lip's foot, which stands on solid plate. There is no handle
+  and no notch: a seated caddy is pulled out by the tray's pull ledge,
+  which stands out under the honeycomb. It joins the tray by five tabs
+  through slots in the plate: two on each wall's front end, 8 mm tall,
+  centred at the finger height (8.35 mm) and as far under the bay's top
+  (21.65 mm), so the bezel is held at its top as well as its bottom, and
+  one on the floor. Each wall tab's outer face leans out 4° toward the
+  bezel's face, 0.14 mm over the bezel's 2 mm, and its slot fits that face
+  with no clearance (0.08 mm on the inner face): pressed on, the bezel
+  snaps over the slope, the wall flexing in, and is then locked on at all
+  four corners as well as by the floor barb. Check: `bezel_tabs_locked`,
+  the bezel slid 1 mm forward cuts into the wall tabs alone, and fails
+  with the slope set to 0. A steep, bay-style dovetail cannot be used here:
+  the bezel goes on straight along the tabs through closed slots, so any
+  undercut has to be one it can snap past (see
+  [ADR 0015](adr/0015-bezel-held-at-four-corners.md)). It is a separate
+  print, front face down, because its lower edge reaches below the tray's
+  floor.
 - **Bezel lip**: a 2 mm lip on the bezel's back face at the top, 1.4 mm
-  thick, 3.5 lattice pitches (27.3 mm) long, from y −26.1 to 1.2: the
-  middle, where the top plate sags most, on the fixed-pin side and clear of
-  the finger notch. When the caddy is seated it sits under the top plate's
+  thick, 10 mm long and centred: the middle, where the top plate sags most,
+  and nowhere else. When the caddy is seated it sits under the top plate's
   solid front rim, its top 0.2 mm under the plate's underside, and props the
   plate up. A 0.5 mm chamfer on its rear top edge lets a sagging plate ride
   up onto it. It reaches 1.5 mm over the drive's front edge, 0.3 mm above
-  a 26.1 mm drive. The drive goes in fixed-pin edge first and sits lowest
-  there, and passes under the lip by flexing the bezel as the other edge
-  is pressed down. Checks: `bezel_lip_holds` (the plate let down 0.4 mm
-  hits it) and `path_bezel_lip` (3 mm from seated, the lip is already
-  under the rim and clears the bay).
+  a 26.1 mm drive; the drive goes in fixed-pin edge first and passes under
+  it by flexing the bezel as the other edge is pressed down. Checks:
+  `bezel_lip_holds` (the plate let down 0.4 mm hits it) and
+  `path_bezel_lip` (3 mm from seated, the lip is already under the rim and
+  clears the bay).
 - **Wall front posts**: near its edges the top plate is propped by the
   caddy walls instead. Over their last 8 mm at the bezel end both walls
   rise from 27 mm to 29.8 mm, 0.2 mm under the plate's underside, with a
@@ -135,12 +166,14 @@ Five flat parts, all 2.4 mm: two identical plates, two identical walls and a
 rear panel. Inner section 107.8 × 30.0; the bay runs from 5 mm behind the
 drive's connector face to the bezel, 152.5 mm. The bezel stops the caddy.
 
-- **Plate**: honeycomb inside a 6 mm rim, six through-slots for the wall
-  tabs, rear-panel slots (four in the top plate, two in the bottom), two
-  lock slots for the caddy's spring bumps in the top plate only, four hex
-  bumps on one face. The bottom plate is turned over so its bumps face
-  down.
-- **Wall**: honeycomb inside a 4 mm rim, three 14 mm tabs on each long edge,
+- **Plate**: honeycomb inside a 6 mm rim, eight dovetailed notches at its two
+  long edges for the wall tabs, rear-panel slots (four in the top plate, two in
+  the bottom), two lock slots for the caddy's spring bumps in the top plate
+  only, four hex bumps on one face. The bottom plate is turned over so its bumps
+  face down.
+- **Wall**: honeycomb inside a 4 mm rim, four 22 mm dovetailed tabs on each
+  long edge (27 and 60 mm either side of the centre, clear of the lock
+  slots),
   four hex bumps on the outer face on the lattice's rows +1 and −1, and a
   slot for the rear panel's side tab, sized to the tab. The right wall is
   the same part turned end for end, so the slot is cut at both ends; the
@@ -169,9 +202,28 @@ drive's connector face to the bezel, 152.5 mm. The bezel stops the caddy.
   over). The wall has a rear-panel slot at both ends so one part serves
   both sides without a mirror image; the unused front slot sits behind the
   bezel.
-- **Fit**: wall tabs are 0.15 mm a side smaller than their plate slots. The
-  rear panel's tabs are 0.08 mm a side in every slot, a friction fit. Press
-  together; a drop of glue at the tabs makes it permanent.
+- **Wall joint**: the plates' notches are open at their edges, so a wall
+  meets a plate as a box corner, its outer face flush with the plate's
+  edge. The notch's ends fix the wall along the bay; the other two
+  directions each need a slope, so each tab end is a dovetail on both:
+  - **Flare, 15°**: the tab widens toward the plate's outer face, 0.64 mm
+    an end over the plate's thickness, so the wall cannot lift off the
+    plate. Lifting is the critical load, so this angle is the steep one.
+  - **Splay, 4°**: the tab widens toward the wall's inner face, 0.17 mm an
+    end over the wall's thickness, so the wall cannot slide out off the
+    plate's edge.
+
+  The wall slides in sideways. The flare runs along that path, so it costs
+  nothing; the splay is what snaps, which is why it is the shallow one.
+  The dovetail faces have no clearance, because a shallow angle turns
+  play into slop: 0.05 mm an end would let a wall slide out 0.7 mm. Across
+  the wall's thickness, against the notch's inner face, it is 0.08 mm a
+  side. Both parts print flat with no support: the wall's flare is in its
+  own plane and the splay leans inward from the bed; the plate's splay is
+  in its plane and the flare widens upward from the bed. Use the slicer's
+  elephant-foot compensation, as the first layers are the tight ones.
+- **Fit**: the rear panel's tabs are 0.08 mm a side in every slot, a
+  friction fit.
 
 ### Joining bays
 
@@ -205,26 +257,28 @@ touch. The array grows as high and as wide as you like.
 Insertion order and directions; [assembly.md](assembly.md) has the same steps
 with pictures:
 
-1. **Walls onto the rear panel.** Panel groove low, SATA notch at the
-   bottom on the +y side, the drive's connector side. Slide each wall
-   sideways onto the panel's side tab, wall groove low on the outside;
-   either end of a wall may face the rear. Panel and walls now stand as a
-   U.
-2. **Into the bottom plate.** The plate with two slots, bumps down, slots
-   at the rear. Lower the U onto it: the walls' three bottom tabs and the
-   panel's two bottom tabs all drop into their slots together.
-3. **Top plate on.** The one with six slots, bumps up, the row of four at
-   the rear; it drops over the walls' top tabs and the panel's four top
-   tabs. Glue the tabs if the bay will be moved about.
+1. **Rear panel into the bottom plate.** The plate with two slots, bumps
+   down, slots at the rear. Panel groove low, SATA notch at the bottom on
+   the +y side, the drive's connector side; its two bottom tabs drop in.
+2. **Top plate on.** The one with six slots, bumps up, the row of four at
+   the rear; it drops onto the panel's four top tabs. Hold the plates'
+   front ends apart by hand for the next step.
+3. **Walls in from the sides.** Wall groove low on the outside; either end
+   may face the rear. Each wall slides in sideways: its eight tabs into the
+   plates' edge notches and its slot onto the panel's side tab, together.
+   The tabs snap past the splay at the end and the wall is locked.
 
-Because the walls go onto the panel before either meets a plate, every
-slot only ever sees one direction of travel and fits its tab exactly; the
-v0.1.0 order, panel in the plate first and walls slid on lifted, needed a
-side slot 2.4 mm too tall. `scripts/check.sh` proves the path: a wall
-approaching the panel sideways, the U half-way down into the bottom plate,
-and the top plate half-way down all clear the parts already placed. A
-panel shifted 1 mm along the bay hits the walls alone, so the side tabs
-really sit in the slots.
+Every slot and notch still sees one direction of travel only, so none needs
+extra length: the panel's tabs go down, and everything a wall meets it meets
+sideways. (Before the dovetails the walls went onto the panel first and the U
+went down into the bottom plate; with the flare, the walls can no longer go in
+from above. See [ADR 0014](adr/0014-dovetailed-wall-joint.md).)
+`scripts/check.sh` proves the path: the panel half-way down into the bottom
+plate, the top plate half-way down onto it, a wall approaching the panel
+sideways, and a wall half-way in, without its splay, all clear the parts already
+placed. A panel shifted 1 mm along the bay hits the walls alone, so the side
+tabs really sit in the slots. A wall lifted 1 mm, or slid 1 mm outward, hits the
+bottom plate: the flare and the splay hold.
 
 ### Venting
 
@@ -325,7 +379,7 @@ Everything flat, nothing needs support.
 
 | Part | Footprint | Notes |
 | --- | --- | --- |
-| Caddy tray | 107 × 159.5 mm, 31 mm tall | pins are small horizontal protrusions; finger slots are 45°; the spring slits bridge 54 mm |
+| Caddy tray | 107 × 166.5 mm, 31.5 mm tall | pins are small horizontal protrusions; finger slots are 45°; the spring slits bridge 54 mm |
 | Caddy bezel | 112.6 × 34.8 mm, 4 mm tall | front face down; a flat plate with the 2 mm lip standing up |
 | Plate, top and bottom | 112.6 × 152.5 mm | bumps up; slots differ |
 | Wall | 152.5 × 34.8 mm | bumps up |
@@ -342,6 +396,7 @@ Everything flat, nothing needs support.
 
 - the walls' and rear panel's tabs sit in their slots without overlap, and a
   wall or panel shifted 1 mm hits plate or wall material (the tabs engage);
+  a wall lifted or slid outward 1 mm hits the plate (the dovetails lock);
 - the rear panel clears the drive and its connectors, and the bezel seats on
   the bay's front face (a bay pushed 1 mm forward hits it);
 - the caddy with a drive sits inside the bay touching only where the bezel
@@ -380,9 +435,13 @@ island, which fails in the z pass (a first layer in the air, or a pillar)
 and passes in the x and y passes, where an island is the apex of a corner
 pointing along the slice normal and anything real there is a neck or fin
 in another pass; a single short contact is the tail a slice leaves when it
-grazes a sharp corner, and passes. Pins are left off the tray for this
-check: a horizontal cylinder sliced near its tangent is
-always thin.
+grazes a sharp corner, and passes. In the x and y passes a slice is two
+cuts 0.5 mm apart, and only material thin in both counts: a cut along a
+sloped face (the wall tabs' 15° dovetail faces) shows the slope's toe as a
+sheet 0.2 mm deep, and a cut past a tapered pin's tip shows a sliver, though
+neither part is thin there; a real roof or neck spans both cuts. Pins are
+left off the tray for this check: a horizontal cylinder sliced near its
+tangent is always thin.
 
 The reference drives (`scad/hdd.scad`, `scad/hdd25.scad`) carry a SATA
 device plug to the SATA-IO layout, horizontal L-shaped tongue at the bottom
@@ -418,25 +477,51 @@ See [ADR 0005](adr/0005-top-edge-spring-lock-grooved-rear-panel.md).
 
 After the print, the bezel's handle was replaced by a finger notch, so it
 prints as a flat plate; see
-[ADR 0006](adr/0006-bezel-finger-notch-instead-of-handle.md).
+[ADR 0006](adr/0006-bezel-finger-notch-instead-of-handle.md). After the
+second print the notch went too, in favour of a pull ledge on the tray.
+
+## Second print
+
+The 0.2.0 test print found:
+
+1. The push tab at the rear corner made the caddy wedge in the bay, and it
+   stood too far out. Now a tongue near the middle of the rear edge, 2 mm
+   proud, rounded.
+2. The spring lock's click was too soft. Now the bump reaches 1.5 mm into
+   the top plate, up from 1.0 mm.
+3. The bezel lip was longer than needed. Now 10 mm, centred.
+4. With a 3.5" drive in, there was no room behind the bezel to grip. Now
+   the tray's floor tab stands 10 mm out under the bezel as a pull ledge
+   with a grip slot and a barb that locks the bezel on, and the notch is
+   gone: the bezel is honeycomb all over.
+5. The walls were loose in the plates. Now four 22 mm tabs per edge
+   instead of three of 14 mm, each a dovetail sloped both ways in a notch
+   at the plate's edge, so a wall snaps in sideways and is locked against
+   lifting and sliding out. The walls now go in last.
+
+See [ADR 0013](adr/0013-second-print-push-tab-pull-ledge.md) and
+[ADR 0014](adr/0014-dovetailed-wall-joint.md).
 
 ## What the next print has to answer
 
-1. Whether the tighter friction fits (bezel tabs, rear panel) press home by
-   hand and hold without glue.
-2. Spring lock: click, hold and release force, and whether the 54 mm slit
-   bridges cleanly in the chosen filament.
-3. Whether the bezel notch gives enough grip to pull the caddy out against
-   the spring lock.
-4. Drive in caddy, still untested: finger stiffness at 1.5 % strain, and
+1. Whether a wall slides in by hand past the 4° splay's 0.17 mm a tab
+   end and then stays put, and whether it comes out again without damage.
+   The angle and the zero clearance on the dovetail faces are the two
+   parameters; printer tolerance is about the size of the snap.
+2. Spring lock: whether the 1.5 mm bump clicks firmly without making the
+   caddy too hard to pull, and whether the 2.1 mm slit still bridges
+   cleanly.
+3. Whether the pull ledge's slot gives enough grip to pull the caddy out
+   against the firmer lock, and whether the bezel snaps over its 0.4 mm
+   barb and its wall tabs' 0.14 mm slopes by hand and stays on. The lower
+   wall tabs sit where the wall is stiffest; if they will not pass, take
+   `bz_tab_splay` down.
+4. Whether the centred push tab pushes the caddy out without wedging.
+5. Drive in caddy, still untested: finger stiffness at 1.5 % strain, and
    whether 2.6 mm pins seat in the tapped holes of the drives on hand.
-5. Fit of the 5.6 mm bumps in the 6.0 mm cells; one parameter.
-6. Rigidity of a loaded 2 × 2 block located by bumps alone; if it racks,
+6. Fit of the 5.6 mm bumps in the 6.0 mm cells; one parameter.
+7. Rigidity of a loaded 2 × 2 block located by bumps alone; if it racks,
    glue the bumps.
-7. Whether a drive goes into a caddy with its bezel on, under the bezel's
-   lip, by flexing the bezel, and whether the lip holds the top plate up.
-8. The rear panel's open corner on the +y side against the real drive's
-   plugs ([ADR 0010](adr/0010-sata-connector-on-the-plus-y-side.md)).
 
 ## Open questions
 

@@ -1,5 +1,8 @@
 # 0011 — A lip on the bezel props the top plate
 
+> **Amended by [0013](0013-second-print-push-tab-pull-ledge.md):** the lip
+> is 10 mm long and centred.
+
 ## Context
 
 The top plate is held along its side edges by the wall tabs. Its front

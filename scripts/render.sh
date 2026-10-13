@@ -70,13 +70,13 @@ done
 STEPCOL="plates:#4a7fb5 walls:#3f9a5c rears:#8e6fd1 trays:#d9822b bezels:#8a4b1a hdds:#555c66"
 stepview() {
   case $1 in
-    1) echo "--views=25,-60 --titles=1._Walls_onto_the_rear_panel_side_tabs" ;;
-    2) echo "--views=30,-130 --titles=2._Down_into_the_bottom_plate_together" ;;
-    3) echo "--views=30,-60 --titles=3._Top_plate_on" ;;
+    1) echo "--views=25,-60 --titles=1._Rear_panel_into_the_bottom_plate" ;;
+    2) echo "--views=30,-130 --titles=2._Top_plate_on" ;;
+    3) echo "--views=25,-60 --titles=3._Walls_slide_in_sideways" ;;
     4) echo "--views=25,30 --titles=4._Bezel_onto_the_tray" ;;
     5) echo "--views=35,-60 --titles=5._Drive_into_the_caddy" ;;
     6) echo "--views=25,30 --titles=6._Slide_the_caddy_in" ;;
-    7) echo "--views=15,20 --titles=7._Seated:_pull_by_the_notch" ;;
+    7) echo "--views=15,20 --titles=7._Seated:_pull_by_the_ledge" ;;
     8) echo "--views=20,145 --titles=Or_push_the_tab_from_behind --subdiv=4" ;;
   esac
 }
