@@ -22,6 +22,19 @@ module tab_dovetail(u0, u1, w0, w1, c = 0, splay = tab_splay)
     polyhedron([for (u = [u0, u1]) for (p = [[-1, w0], [1, w0], [1, w1], [-1, w1]])
                     [p[0] * tab_end(u, p[1], c, splay), p[1], u]],
                [[0, 1, 2, 3], [4, 5, 1, 0], [7, 6, 5, 4], [5, 6, 2, 1], [6, 7, 3, 2], [7, 4, 0, 3]]);
+// corner reliefs, in the same frame. A notch's inner corners: on its inner
+// face, tangent to its dovetail ends, relief_r into the plate. Where the
+// caddy's lock bumps ride under the top plate that would leave a pocket on
+// their track, so there `into_end` turns it to cut into the dovetail end
+// instead, tangent to the inner face.
+module notch_reliefs(into_end = false) let(w = b_wall + tab_fit_clr) for (s = [-1, 1])
+    if (into_end) relief_rod([s * tab_end(-1, w - relief_r, tab_clr), w, -1], [s * tab_end(b_t + 1, w - relief_r, tab_clr), w, b_t + 1], [0, -1, 0]);
+    else relief_rod([s * tab_end(-1, w, tab_clr), w, -1], [s * tab_end(b_t + 1, w, tab_clr), w, b_t + 1], [-s, 0, 0]);
+// A wall tab's roots: on the wall's edge (u = 0), tangent to the tab's
+// ends, relief_r into the wall, where the notch's corners on the plate's
+// inner face seat.
+module root_reliefs(splay = tab_splay) for (s = [-1, 1])
+    relief_rod([s * tab_end(0, -1, 0, splay), -1, 0], [s * tab_end(0, b_wall + 1, 0, splay), b_wall + 1, 0], [s, 0, 0]);
 
 // ---- plate, own frame: flat, x b_x0..b_l, y centred, z 0..b_t, bumps on +z.
 //      The bottom plate is turned over when assembled. The two prints tell
@@ -34,7 +47,8 @@ module plate(kind = "top") {
         box([b_x0, -b_w/2, 0], [b_l, b_w/2, b_t]);
         // wall notches, open at the edge: (x, w, u) -> (x, edge - w, u)
         for (x = tab_x, s = [-1, 1]) translate([x, s * (b_in_w/2 + b_wall), 0]) mirror([0, s < 0 ? 1 : 0, 0])
-            multmatrix([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0]]) tab_dovetail(-1, b_t + 1, -1, b_wall + tab_fit_clr, tab_clr);
+            multmatrix([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0]]) { tab_dovetail(-1, b_t + 1, -1, b_wall + tab_fit_clr, tab_clr);
+                notch_reliefs(kind == "top" && x + tab_len/2 + tab_reach > sp_hole_x[1]); }
         for (y = rear_slot_y(kind)) slot(rear_x + rear_t/2, y, rear_t, rear_tab, rear_fit_clr);  // rear panel
         // caddy lock slots under both caddy walls, top plate only
         if (kind == "top") for (s = [-1, 1]) box([sp_hole_x[0], s * sp_hole_y[0], -1], [sp_hole_x[1], s * sp_hole_y[1], b_t + 1]);
@@ -63,8 +77,17 @@ module wall(splay = tab_splay) {
                 translate([0, b_in_h, 0]) multmatrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0]]) tab_dovetail(-0.01, b_t, 0, b_wall, 0, splay);
             }
         }
+        for (x = tab_x) translate([x, 0, b_wall]) {
+            multmatrix([[1, 0, 0, 0], [0, 0, -1, 0], [0, -1, 0, 0]]) root_reliefs(splay);
+            translate([0, b_in_h, 0]) multmatrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0]]) root_reliefs(splay);
+        }
         // rear panel side tab slot, both ends (symmetry), sized to the tab
         for (x = wall_slot_x) slot(x, rear_tab_z, rear_t, rear_tab, rear_fit_clr);
+        // its corner reliefs, two diagonal corners, centred on the corner;
+        // they also take a drop of glue
+        for (x = wall_slot_x, s = [-1, 1])
+            let(c = [x + s * (rear_t/2 + rear_fit_clr), rear_tab_z + s * (rear_tab/2 + rear_fit_clr)])
+                relief_rod([c[0], c[1], -1], [c[0], c[1], b_wall + 1]);
         // orientation groove along the outer face, low down
         translate([b_x0 - 1, groove_z - groove_w/2, b_wall - groove_d]) cube([b_l - b_x0 + 2, groove_w, groove_d + 1]);
         translate([b_xc, b_in_h/2, b_wall/2])

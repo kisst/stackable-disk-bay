@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Merge per-part STLs into one coloured model. Dependency-free.
-STL has no standard colour, so two files are written:
-  <out>.3mf  one object per part, each with its own colour (slicers, viewers)
-  <out>.stl  one binary STL with per-facet colour in the attribute bytes
-             (the VisCAM/SolidView convention: bit 15 set, 5-bit RGB)
-  color_mesh.py out/name part.stl::#rrggbb [part.stl::#rrggbb ...]"""
+Writes <out>.3mf, one object per part, each with its own colour (slicers,
+viewers). STL has no standard colour; --stl also writes <out>.stl, one
+binary STL with per-facet colour in the attribute bytes (the VisCAM/SolidView
+convention: bit 15 set, 5-bit RGB).
+  color_mesh.py [--stl] out/name part.stl::#rrggbb [part.stl::#rrggbb ...]"""
 import os, struct, sys, zipfile
 sys.path.insert(0, os.path.dirname(__file__))
 from stl_components import read_stl
@@ -55,10 +55,14 @@ def write_3mf(path, parts):
         z.writestr("3D/3dmodel.model", model)
 
 if __name__ == "__main__":
-    out, specs = sys.argv[1], sys.argv[2:]
+    args = sys.argv[1:]
+    stl = "--stl" in args
+    if stl: args.remove("--stl")
+    out, specs = args[0], args[1:]
     parts = []
     for s in specs:
         p, col = s.split("::")
         parts.append((os.path.splitext(os.path.basename(p))[0], read_stl(p), col))
-    write_stl(out + ".stl", parts); write_3mf(out + ".3mf", parts)
+    write_3mf(out + ".3mf", parts)
+    if stl: write_stl(out + ".stl", parts)
     print(out, sum(len(t) for _, t, _ in parts), "facets,", len(parts), "parts")

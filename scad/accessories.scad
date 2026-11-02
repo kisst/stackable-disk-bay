@@ -84,6 +84,17 @@ module dovetail2d(u, v, dir, grow = 0) {       // neck on v, head toward dir (+1
     offset(delta = grow) polygon([[u - jn_dt_neck / 2, v - dir * 0.01], [u + jn_dt_neck / 2, v - dir * 0.01],
                                   [u + jn_dt_head / 2, v + dir * jn_dt_depth], [u - jn_dt_head / 2, v + dir * jn_dt_depth]]);
 }
+// reliefs for a tab at (u, v) heading dir and a socket at (us, vs) heading
+// dirs: at the tab's roots, and at the socket's deep corners, where its
+// flanks and end, each moved out by jn_dt_clr, meet
+module dovetail_reliefs2d(u, v, dir, us, vs, dirs) {
+    k = (jn_dt_head - jn_dt_neck) / 2 / jn_dt_depth;      // flank slope, half-width per depth
+    g = jn_dt_clr;  hw = jn_dt_head / 2 + k * g + g * sqrt(1 + k * k);
+    for (s = [-1, 1]) {
+        translate([u + s * jn_dt_neck / 2, v]) circle(r = relief_r, $fn = 16);
+        translate([us + s * hw, vs + dirs * (jn_dt_depth + g)]) circle(r = relief_r, $fn = 16);
+    }
+}
 // honeycomb cells of zone k: a bay half's lattice, rows counted from the
 // zone edge that lies on the bay's centre line (`from` = 0: the lower edge,
 // 1: the upper edge). Whole cells only, a web from every edge and dovetail.
@@ -112,6 +123,10 @@ module joiner2d(fam, n, lock_lo = true, lock_hi = true) {
         }
         if (lock_hi) for (t = jn_dt) dovetail2d(b_xc - t, V, -1, jn_dt_clr);   // sockets for the piece above
         if (lock_lo) for (t = jn_dt) dovetail2d(b_xc + t, 0, 1, jn_dt_clr);    // and below
+        // corner reliefs, centred on the corners as they are acute: the
+        // sockets' deep corners and the tabs' roots
+        if (lock_hi) for (t = jn_dt) dovetail_reliefs2d(b_xc + t, V, 1, b_xc - t, V, -1);
+        if (lock_lo) for (t = jn_dt) dovetail_reliefs2d(b_xc - t, 0, -1, b_xc + t, 0, 1);
         // half piece: its upper edge is a bay's centre line. Longer pieces
         // run from one bay's centre line to another's, so the zones alternate:
         // even ones count rows from their lower edge, odd ones from their upper

@@ -21,6 +21,8 @@ its edge. Each of those two directions needs a slope of its own.
     plate pulled off the walls, so it gets the steep angle.
   - **Splay, 4°**: the tab widens toward the wall's inner face, 0.17 mm an
     end. The wall cannot slide outward.
+    (Amended by [0016](0016-third-print-lighter-wall-splay-and-lock.md):
+    1.5°, as the third print's walls would not go in.)
 - **The walls slide in sideways, last.** The flare runs along that path,
   so only the splay has to be passed, and it snaps: that is why it is the
   shallow angle. The order becomes rear panel into the bottom plate, top

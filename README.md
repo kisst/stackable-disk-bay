@@ -85,7 +85,7 @@ Step by step with pictures: [docs/assembly.md](docs/assembly.md).
 - **Bay assembly.** Rear panel into the bottom plate; top plate onto the
   panel; then each wall slides in from the side. Its tabs are dovetails in
   notches at the plates' edges, sloped both ways: steeply, so the wall
-  cannot lift off, and shallowly, so it snaps in and cannot slide back out.
+  cannot lift off, and only slightly, so it slides in tight and stays put.
   The panel's open corner clears the SATA plugs. No glue. A set of checks
   proves the insertion path and the locks.
 - **Bay to bay.** No extra parts. Every bump stands on its part's honeycomb
@@ -105,6 +105,7 @@ Needs Docker and a stock `python3` (standard library only). OpenSCAD
 ```sh
 scripts/render.sh          # STL + PNG for every part and view -> out/
 scripts/assemblies.sh      # coloured 3MF assemblies -> out/assemblies/
+scripts/assemblies.sh bay  # the named ones only, e.g. bay caddy_hdd35
 scripts/check.sh           # all interference checks; all must PASS
 scripts/check.sh quick     # single unit and neighbours only
 scripts/check.sh array     # loaded 2x2 combo only (slow, CGAL)

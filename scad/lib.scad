@@ -62,6 +62,15 @@ module hex_holes(size, cell, web, keep = [], phase = [0, 0]) {
     }
 }
 
+// ---- corner reliefs ----------------------------------------------------
+// A relief_r rod along an inside corner that runs from p0 to p1, shifted
+// relief_r along d: along the face it cuts into, away from the face that
+// keeps its fit, so it is tangent to that face at the corner. d = 0 centres
+// it on the corner. Run p0 and p1 past the part so the rod's round ends
+// never show.
+module relief_rod(p0, p1, d = [0, 0, 0])
+    hull() for (p = [p0, p1]) translate(p + relief_r * d) sphere(r = relief_r, $fn = 16);
+
 // Through-cut for a wall: hex field extruded `t` thick, centred on z = 0.
 module honeycomb_cut(size, t, cell, web, keep = [], phase = [0, 0]) {
     linear_extrude(height = t, center = true) hex_holes(size, cell, web, keep, phase);

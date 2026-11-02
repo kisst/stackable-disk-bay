@@ -117,7 +117,7 @@ if (check == "path_wall_onto_panel") intersection() { left_wall_at(4); rear_plac
 if (check == "path_rear_drop")   intersection() { translate([0, 0, b_t/2]) rear_placed(); bottom_plate(); }   // half way down
 if (check == "path_top_drop")    intersection() { translate([0, 0, b_in_h + b_t/2]) plate("top"); rear_placed(); }
 // half way in, a wall without the splay clears both plates: the flare runs
-// along the slide, and the splay's 0.17 mm a tab end is all that snaps
+// along the slide, and the splay's 0.06 mm a tab end is all that snaps
 if (check == "path_wall_slide")  intersection() { left_wall_at(b_wall/2, 0); union() { bottom_plate(); translate([0, 0, b_in_h]) plate("top"); } }
 
 // ---- neighbours ---------------------------------------------------------------

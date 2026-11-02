@@ -268,6 +268,17 @@ module bezel_slots() {
     bz_wall_tabs(c, 1, ce);
     box([x0 - 1, -bz_tab_w/2 - ce, -cf], [x0 + bezel_t + 1, bz_tab_w/2 + ce, c_floor + cf]);
 }
+// corner reliefs in the upper wall tab slots, two diagonal corners each:
+// the inner face's lower corner and the sloped outer face's upper one,
+// centred on the corner. They also take a drop of glue.
+module bezel_slot_reliefs() {
+    x0 = c_body_l;  t = tan(bz_tab_splay);  yi = c_in_w/2 - bz_tab_clr;  yo = c_w/2;
+    z = bz_tab_z[1];  zl = z - bz_tab_h/2 - bz_end_clr;  zh = z + bz_tab_h/2 + bz_end_clr;
+    for (s = [-1, 1]) mirror([0, s < 0 ? 1 : 0, 0]) {
+        relief_rod([x0 - 1, yi, zl], [x0 + bezel_t + 1, yi, zl]);
+        relief_rod([x0 - 1, yo - t, zh], [x0 + bezel_t + 1, yo + (bezel_t + 1) * t, zh]);
+    }
+}
 
 // keep-outs for the bezel honeycomb, in the field's frame (u = b_in_h/2 - z,
 // v = y): whole cells stay a margin away from the tab slots and from the
@@ -298,6 +309,7 @@ module bezel() {
     difference() {
         box([x0, -b_w/2, b_z0], [x0 + bezel_t, b_w/2, b_z1]);
         bezel_slots();
+        bezel_slot_reliefs();
         // honeycomb over the whole face, centred on it
         translate([x0 + bezel_t/2, 0, b_in_h/2]) rotate([0, 90, 0])
             honeycomb_cut([b_h - 2 * bz_rim, b_w - 2 * bz_rim], bezel_t + 2, bz_hex_cell, bz_hex_web, bezel_keep());

@@ -33,10 +33,14 @@ by hand, about a wall's height, for the next step.
 Slide each wall in sideways, low groove on the outside and near the floor.
 Either end of a wall may face the rear. Its four top and four bottom tabs
 go into the notches at the plates' edges, and its slot goes onto the
-panel's side tab, all at once. Near the end the tabs snap past a slight
-narrowing at the notches' mouths. The wall is then locked: its tabs widen
-toward the plates' outer faces, so it cannot lift out, and toward its
-inner face, so it cannot slide back out. To take a wall off, push it out
+panel's side tab, all at once. It is a tight slide, and near the end the
+tabs pass a very slight narrowing at the notches' mouths. The wall is then
+locked: its tabs widen toward the plates' outer faces, so it cannot lift
+out, and slightly toward its inner face, so it does not slide back out.
+The corners of the notches and of the tab roots are relieved, so they need
+no cleaning out. If a wall still will not go in by hand, clean the
+notches' sloped ends and the tab ends of elephant foot and stringing,
+then try again. To take a wall off, push it out
 sideways from the inside, evenly along its length.
 
 ![Walls sliding in from the sides](img/step3.png)
@@ -51,6 +55,10 @@ slightly and the floor tab's ledge has a small barb: press until the bezel
 clicks over all of them. It then stays on; to take it off again, push the
 wall tabs in from the outside and lift the bottom slot's edge over the barb
 with a small screwdriver.
+
+To make it permanent, run a drop of thin superglue into the small round
+holes at two corners of each upper wall-tab slot. The walls' rear-panel
+slots have the same holes, for the rear panel.
 
 ![Bezel pressing onto the tray](img/step4.png)
 

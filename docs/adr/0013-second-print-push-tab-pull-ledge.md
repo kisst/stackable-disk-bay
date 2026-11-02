@@ -33,6 +33,8 @@ The 0.2.0 test print found five problems.
   pressed flat. The preload stays at 0.4 mm. The holding ramp now bears
   1.1 mm deep on the slot's edge, up from 0.6 mm. The lock slot grows to
   4.5 mm along the bay.
+  (Amended by [0016](0016-third-print-lighter-wall-splay-and-lock.md):
+  1.25 mm, as 1.5 mm held too hard.)
 - **Short lip.** The bezel lip is 10 mm long, centred on the centre line.
 - **Pull ledge, at the front, as the push tab is at the rear.** This was the
   printer owner's idea. The tray's floor tab already passes through the bezel's

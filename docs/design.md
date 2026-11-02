@@ -74,19 +74,20 @@ bay's face, honeycomb all over.
   is measured from the slot's highest point, the corner of its ring at the
   root, which sits 3 mm above the beam's centreline.
 - **Spring lock** for retention in the bay, on the top edge of both walls. A
-  54 mm slit, 2.1 mm high, under the rim (x 56 to 110, between the +y wall's
+  54 mm slit, 1.85 mm high, under the rim (x 56 to 110, between the +y wall's
   finger slots) frees a 2 mm beam anchored at both ends, under a 1.5 mm hump
   that rises from the rim on 15° ramps with 6 mm radii. A bump in the beam's
   middle rides on the top plate's underside. It has a 30° lead-in ramp facing
   the rear, a 45° holding ramp facing the front and a 1.2 mm crest, with 1.5
-  mm fillets at its foot and a 1 mm radius on the crest, and reaches 1.5 mm
-  into the plate when relaxed. Its track lies under the plate's solid rim,
+  mm fillets at its foot and a 1 mm radius on the crest, and reaches 1.25 mm
+  into the plate when relaxed (1.0 mm clicked too softly in 0.2.0, 1.5 mm
+  held too hard in 0.3.0). Its track lies under the plate's solid rim,
   outside the honeycomb, so it has nothing to drop into until it reaches its
   slot at the seated position. The slot's front edge meets the holding ramp
   with 0.4 mm of deflection left, so the spring keeps pushing the caddy down
   and the bezel onto the bay. Anchored at both ends, the beam's underside
   prints as a bridge; the bump stands upright on the edge. The beam rate is
-  about 4 N/mm in PETG and 7 N/mm in PLA per side, at 1.2 % strain when
+  about 4 N/mm in PETG and 7 N/mm in PLA per side, at 1.0 % strain when
   pressed flat. A pull on the ledge overcomes the 45° ramps.
 - **Push tab** in the middle of the rear edge, so the caddy can be pushed
   out from behind without loading the bezel joint. A tongue on the floor's
@@ -209,14 +210,15 @@ drive's connector face to the bezel, 152.5 mm. The bezel stops the caddy.
   - **Flare, 15°**: the tab widens toward the plate's outer face, 0.64 mm
     an end over the plate's thickness, so the wall cannot lift off the
     plate. Lifting is the critical load, so this angle is the steep one.
-  - **Splay, 4°**: the tab widens toward the wall's inner face, 0.17 mm an
-    end over the wall's thickness, so the wall cannot slide out off the
-    plate's edge.
+  - **Splay, 1.5°**: the tab widens toward the wall's inner face, 0.06 mm
+    an end over the wall's thickness, so the wall does not slide out off
+    the plate's edge. It was 4° (0.17 mm) in 0.3.0, and the walls of that
+    print would not go in ([ADR 0016](adr/0016-third-print-lighter-wall-splay-and-lock.md)).
 
   The wall slides in sideways. The flare runs along that path, so it costs
-  nothing; the splay is what snaps, which is why it is the shallow one.
-  The dovetail faces have no clearance, because a shallow angle turns
-  play into slop: 0.05 mm an end would let a wall slide out 0.7 mm. Across
+  nothing but friction; the splay is what snaps, which is why it is the
+  shallow one. The dovetail faces have no clearance, because a shallow angle
+  turns play into slop: 0.05 mm an end would let a wall slide out 1.9 mm. Across
   the wall's thickness, against the notch's inner face, it is 0.08 mm a
   side. Both parts print flat with no support: the wall's flare is in its
   own plane and the splay leans inward from the bed; the plate's splay is
@@ -224,6 +226,18 @@ drive's connector face to the bezel, 152.5 mm. The bezel stops the caddy.
   elephant-foot compensation, as the first layers are the tight ones.
 - **Fit**: the rear panel's tabs are 0.08 mm a side in every slot, a
   friction fit.
+- **Corner reliefs**: the wall joint's inside corners have a 0.5 mm round
+  relief through the part, so the printed corner's rounding does not hold
+  the joint open: the plates' notches and the wall tab roots. The rear
+  panel's and bezel's joints, never a problem, get two only, as glue
+  holes: at diagonal corners of the walls' rear-panel slots and of the
+  bezel's upper wall-tab slots, where a drop of superglue can run in if a
+  joint is to be made permanent. Square corners
+  get a T-bone, tangent to the face that carries the fit and cut into the
+  other; the joiners' acute dovetail corners get one centred on the
+  corner. On the top plate, the four notches under the caddy lock bumps'
+  track are relieved into their dovetail ends instead, so the track stays
+  solid ([ADR 0017](adr/0017-corner-reliefs-at-joint-corners.md)).
 
 ### Joining bays
 
@@ -266,7 +280,8 @@ with pictures:
 3. **Walls in from the sides.** Wall groove low on the outside; either end
    may face the rear. Each wall slides in sideways: its eight tabs into the
    plates' edge notches and its slot onto the panel's side tab, together.
-   The tabs snap past the splay at the end and the wall is locked.
+   It is a tight slide; the tabs pass the slight splay at the end and the
+   wall is locked.
 
 Every slot and notch still sees one direction of travel only, so none needs
 extra length: the panel's tabs go down, and everything a wall meets it meets
@@ -278,7 +293,7 @@ plate, the top plate half-way down onto it, a wall approaching the panel
 sideways, and a wall half-way in, without its splay, all clear the parts already
 placed. A panel shifted 1 mm along the bay hits the walls alone, so the side
 tabs really sit in the slots. A wall lifted 1 mm, or slid 1 mm outward, hits the
-bottom plate: the flare and the splay hold.
+bottom plate: the flare and the splay hold, the splay only just.
 
 ### Venting
 
@@ -379,7 +394,7 @@ Everything flat, nothing needs support.
 
 | Part | Footprint | Notes |
 | --- | --- | --- |
-| Caddy tray | 107 × 166.5 mm, 31.5 mm tall | pins are small horizontal protrusions; finger slots are 45°; the spring slits bridge 54 mm |
+| Caddy tray | 107 × 166.5 mm, 31.25 mm tall | pins are small horizontal protrusions; finger slots are 45°; the spring slits bridge 54 mm |
 | Caddy bezel | 112.6 × 34.8 mm, 4 mm tall | front face down; a flat plate with the 2 mm lip standing up |
 | Plate, top and bottom | 112.6 × 152.5 mm | bumps up; slots differ |
 | Wall | 152.5 × 34.8 mm | bumps up |
@@ -502,20 +517,31 @@ The 0.2.0 test print found:
 See [ADR 0013](adr/0013-second-print-push-tab-pull-ledge.md) and
 [ADR 0014](adr/0014-dovetailed-wall-joint.md).
 
+## Third print
+
+The 0.3.0 test print found:
+
+1. The caddy tray fits as intended, but the spring lock now holds too hard.
+   Now the bump reaches 1.25 mm into the top plate, between 0.2.0's 1.0 mm
+   and 0.3.0's 1.5 mm.
+2. The dovetailed walls held, but far too tight: with both slopes at their
+   0.3.0 angles, the bay could hardly be assembled. The 15° flare stays and
+   the splay drops from 4° to 1.5°, a snap of 0.06 mm a tab end instead of
+   0.17 mm. The flare's faces still slide with no clearance, so the notches
+   may need cleaning up.
+
+See [ADR 0016](adr/0016-third-print-lighter-wall-splay-and-lock.md).
+
 ## What the next print has to answer
 
-1. Whether a wall slides in by hand past the 4° splay's 0.17 mm a tab
-   end and then stays put, and whether it comes out again without damage.
-   The angle and the zero clearance on the dovetail faces are the two
-   parameters; printer tolerance is about the size of the snap.
-2. Spring lock: whether the 1.5 mm bump clicks firmly without making the
-   caddy too hard to pull, and whether the 2.1 mm slit still bridges
-   cleanly.
-3. Whether the pull ledge's slot gives enough grip to pull the caddy out
-   against the firmer lock, and whether the bezel snaps over its 0.4 mm
-   barb and its wall tabs' 0.14 mm slopes by hand and stays on. The lower
-   wall tabs sit where the wall is stiffest; if they will not pass, take
-   `bz_tab_splay` down.
+1. Whether a wall now slides in by hand with the 1.5° splay, with no
+   clean-up thanks to the corner reliefs, and still stays put. If it is still too
+   hard, set `tab_splay` to 0 next; if it slides back out, give it 2°.
+2. Spring lock: whether the 1.25 mm bump still clicks clearly without
+   making the caddy hard to pull.
+3. Whether the bezel snaps over its 0.4 mm barb and its wall tabs' 0.14 mm
+   slopes by hand and stays on. The lower wall tabs sit where the wall is
+   stiffest; if they will not pass, take `bz_tab_splay` down.
 4. Whether the centred push tab pushes the caddy out without wedging.
 5. Drive in caddy, still untested: finger stiffness at 1.5 % strain, and
    whether 2.6 mm pins seat in the tapped holes of the drives on hand.

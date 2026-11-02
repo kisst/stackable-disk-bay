@@ -113,6 +113,14 @@ b_xc    = (b_x0 + b_l) / 2;           // part centre along x (patterns are symme
 b_z0    = -b_t;                       // bottom of the bay
 b_z1    = b_in_h + b_t;               // top of the bay
 
+// corner reliefs. A printed inside corner comes out rounded, about half a
+// line wide, and the mating part's sharp corner then stands off it: the
+// faces either side do not close without cleaning up. So every inside
+// corner a mating corner seats in gets a round pocket this radius: a
+// T-bone, tangent to the face that keeps the fit and this deep into the
+// other, or centred on the corner where it is acute (the joiners).
+relief_r = 0.5;
+
 // wall tabs into the plates: four long ones, for grip. Symmetric about
 // b_xc so both walls are one part, and clear of the top plate's lock slots
 // (x 80 to 85) and their mirror image. Each plate's notch is open at its
@@ -121,14 +129,16 @@ b_z1    = b_in_h + b_t;               // top of the bay
 //          the plate. The critical load, so steep.
 //   splay: wider toward the wall's inner face, so the wall cannot slide out
 //          off the plate's edge. The wall slides in sideways past it, so it
-//          is shallow: b_wall * tan(tab_splay), 0.17 mm a tab end, snaps.
+//          is shallow: b_wall * tan(tab_splay), 0.06 mm a tab end, a light
+//          snap. At 4 degrees (0.17 mm) with the 15-degree flare, the
+//          walls of the third print would not go in (ADR 0016).
 tab_len  = 22;                        // along the wall's outer face, where the tab leaves the wall
 tab_x    = [b_xc - 60, b_xc - 27, b_xc + 27, b_xc + 60];
 tab_flare = 15;                       // deg
-tab_splay = 4;                        // deg
-tab_reach = b_t * tan(tab_flare) + b_wall * tan(tab_splay);   // 0.81, the tab end's widest point past tab_len/2
+tab_splay = 1.5;                      // deg
+tab_reach = b_t * tan(tab_flare) + b_wall * tan(tab_splay);   // 0.71, the tab end's widest point past tab_len/2
 tab_clr  = 0;                         // per end, on the dovetail faces: none. The shallow splay turns play
-                                      // into slop: 0.05 mm would let a wall slide out 0.7 mm
+                                      // into slop: 0.05 mm would let a wall slide out 1.9 mm
 tab_fit_clr = 0.08;                   // per side across the wall's thickness, against the notch's inner face
 
 // rear panel: semi-closed back, tabs into the plates and walls, SATA cutout
@@ -222,7 +232,7 @@ groove_d = 0.6;                       // engraving depth
 sp_x       = [56, 110];  // slit span along x: the beam's free length
 sp_rise    = 1.5;        // beam top above the wall rim (a low hump over the slit)
 sp_h       = 2.0;        // beam depth (z)
-sp_lock    = 1.5;        // how far a relaxed bump would reach into the top plate
+sp_lock    = 1.25;       // how far a relaxed bump would reach into the top plate
 sp_gap     = sp_lock + 0.6;  // slit height: room for the deflection plus bridge sag
 sp_preload = 0.4;        // deflection left when seated: keeps the caddy down and the bezel home
 sp_flat    = 1.2;        // flat on the bump's crest
@@ -234,7 +244,7 @@ sp_hump_r  = 6;          // radius on the hump's ramp corners
 sp_fillet_r = 1.5;       // fillet where the bump's ramps meet the hump
 sp_crest_r = 1.0;        // radius on the bump's crest corners
 sp_top     = c_wall_top + sp_rise;         // 28.5, beam top at rest
-sp_bump_h  = b_in_h - sp_top + sp_lock;    // 3.0, crest at 31.5 relaxed, 30.0 while sliding
+sp_bump_h  = b_in_h - sp_top + sp_lock;    // 2.75, crest at 31.25 relaxed, 30.0 while sliding
 sp_bump_x  = (sp_x[0] + sp_x[1]) / 2;      // crest centre
 sp_slit_z  = sp_top - sp_h - sp_gap;       // slit bottom
 // slot in the top plate: its front edge sits where the 45-degree front ramp
