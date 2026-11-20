@@ -52,6 +52,21 @@ bz_tab_h, bz_tab_w = 8.0, 60.0
 bz_tab_clr, bz_floor_clr, bz_end_clr = 0.08, 0.05, 0.15
 bz_lip_d, bz_lip_t, bz_lip_c = 2.0, 1.4, 0.5
 
+# ---- caddy tray (scad/params.scad c_*, push_*, pin_*, finger_*, sp_*) -----
+c_rear_gap = 3.0
+c_wall_top = c_floor + c_wall_h
+c_post_l = 8.0
+c_post_h = b_in_h - 0.2
+push_x1, push_w, push_h, push_fillet, push_r, push_nose = b_x0 - 5, 10.0, 6.0, 8.0, 3.0, 2.5
+pin_d, pin_tip = 2.6, 1.2
+pin_len = clr + 1.8
+hdd_side_hole_x = [28.5, 130.1]
+finger_angle, finger_w, finger_gap, finger_rim = 45.0, 6.0, 1.2, 3.0
+fingers = [[hdd_side_hole_x[0], 1], [hdd_side_hole_x[1], -1]]
+sp_rise, sp_h, sp_gap = 1.5, 2.0, 1.6
+sp_top = c_wall_top + sp_rise
+sp_slit_z = sp_top - sp_h - sp_gap
+
 hex_dx = hex_cell + hex_web
 hex_dy = hex_dx * math.sqrt(3) / 2
 bump_h = 1.4
@@ -177,7 +192,10 @@ def emit_honeycomb_patterned(size, keep, cx_off, cy_off, z0, t, phase=(0, 0),
             pat.update({"count2": len(jset), "spacing2": round(2 * dy, 4)})
         add("sketch.pattern.rectangular", pat)
         add("sketch.finish", {})
-        add("solid.extrude", {"distance": str(t + 2), "operation": "cut"})
+        cut = {"distance": str(t + 2), "operation": "cut"}
+        if targets:
+            cut["targets"] = targets     # multi-body parts: never cut a neighbour
+        add("solid.extrude", cut)
     plugs = [(cx + cx_off, cy + cy_off) for i, j, cx, cy in full if (i, j) not in kept]
     if plugs:
         add("sketch.create", {"plane": "XY", "offset": round(z0, 4)})
@@ -442,6 +460,145 @@ def emit_bezel():
     return n, plugs
 
 
+def finger_keep(xp, zt, d, cx, cz):
+    """scad finger_keep(): bbox of a finger's slot ring + recess, plus the web margin."""
+    slot_half = finger_w / 2 + finger_gap
+    L = (c_wall_top - finger_rim - slot_half * math.cos(math.radians(finger_angle)) - zt) \
+        / math.sin(math.radians(finger_angle))
+    a = math.radians(finger_angle if d > 0 else 180 - finger_angle)
+    pts = [[xp + u * math.cos(a) - v * math.sin(a), zt + u * math.sin(a) + v * math.cos(a)]
+           for u in (-slot_half, L + finger_w / 2) for v in (-slot_half, slot_half)]
+    m = b_keep_margin
+    return [min(p[0] for p in pts) - m - cx, min(p[1] for p in pts) - m - cz,
+            max(p[0] for p in pts) + m - cx, max(p[1] for p in pts) + m - cz]
+
+
+def tray_wall_keep(s, fc_x, fc_z):
+    """scad wall_vents(s) keep-outs (the full set, finger and spring ones too:
+    those cells stay solid, Task 6 cuts the fingers/slits into them)."""
+    keep = []
+    if s > 0:
+        keep += [finger_keep(f[0], pin_z, f[1], fc_x, fc_z) for f in fingers]
+    keep.append([sp_x[0] - b_keep_margin - fc_x, sp_slit_z - b_keep_margin - fc_z,
+                 sp_x[1] + b_keep_margin - fc_x, 50])
+    if s < 0:
+        keep += [[x - 4 - fc_x, pin_z - 4 - fc_z, x + 4 - fc_x, pin_z + 4 - fc_z] for x in hdd_side_hole_x]
+    keep.append([c_body_l - 8 - fc_x, -50, c_body_l + 5 - fc_x, 50])
+    return keep
+
+
+def emit_tray_base():
+    """Emit the caddy tray WITHOUT fingers/slots/service holes/spring slits/
+    bumps (Task 6): floor, both walls (full wall_vents honeycomb, keep-outs
+    incl. finger/spring ones), front posts, bezel tabs, push tab, pins.  Built
+    in the shared frame, body `tray`.  Returns a dict of counts."""
+    name = "tray"
+    xl = c_body_l - c_rear_gap
+    fc = c_rear_gap + xl / 2
+    add_params()
+    add("component.create", {"name": "Tray", "activate": True})
+    add("solid.box", {"length": str(round(xl, 4)), "width": str(round(c_w, 4)), "height": str(c_floor),
+                      "corner": [str(c_rear_gap), str(round(-c_w / 2, 4)), "0"],
+                      "operation": "new", "name": name, "body_name": name})
+    fsize = [xl - 2 * c_frame, c_in_w - 2 * c_frame]
+    fn, fplugs = emit_honeycomb_patterned(fsize, [], fc, 0.0, 0.0, c_floor,
+                                          phase=(b_xc - fc, 0.0), cell=c_hex_cell, web=c_hex_web,
+                                          targets=[name])
+    ref, _ = hex_cells(fsize, c_hex_cell, c_hex_web, [], fc, 0.0, (b_xc - fc, 0.0))
+    assert fn == len(ref), f"floor cells {fn} != hex_cells {len(ref)}"
+    # walls: local frame (x along, y = world z, z = thickness out from the
+    # inner face), honeycomb as an XY field, then a rigid move + join.  The +y
+    # wall is turned 180 deg (x -> c_rear_gap + c_body_l - x) to stay a rotation.
+    fc_z = c_wall_top / 2
+    wsize = [xl - 2 * c_wall_rim, c_wall_top - 2 * c_wall_rim]
+    wcells = {}
+    for s in (-1, 1):
+        wn = f"tw_{'p' if s > 0 else 'm'}"
+        add("solid.box", {"length": str(round(xl, 4)), "width": str(c_wall_top), "height": str(c_wall),
+                          "corner": [str(c_rear_gap), "0", "0"], "operation": "new",
+                          "name": wn, "body_name": wn})
+        keep = tray_wall_keep(s, fc, fc_z)
+        ph = (b_xc - fc, b_in_h / 2 - fc_z)
+        if s > 0:   # mirrored in x
+            keep = [[-k[2], k[1], -k[0], k[3]] for k in keep]
+            ph = (-ph[0], ph[1])
+        n, plugs = emit_honeycomb_patterned(wsize, keep, fc, fc_z, 0.0, c_wall, phase=ph,
+                                            cell=c_hex_cell, web=c_hex_web, targets=[wn])
+        r2, _ = hex_cells(wsize, c_hex_cell, c_hex_web, keep, fc, fc_z, ph)
+        assert n == len(r2), f"wall cells {n} != hex_cells {len(r2)}"
+        wcells[s] = (n, plugs)
+        if s < 0:
+            m = [[1, 0, 0, 0], [0, 0, -1, -c_in_w / 2], [0, 1, 0, 0]]
+        else:
+            m = [[-1, 0, 0, c_rear_gap + c_body_l], [0, 0, 1, c_in_w / 2], [0, 1, 0, 0]]
+        add("solid.move", {"bodies": [wn], "matrix": [[round(v, 6) for v in row] for row in m]})
+        add("solid.combine", {"target": name, "tools": [wn], "operation": "join"})
+    # raised front posts: 5-point profile in the wall plane (sketch on XZ: x, -z)
+    x1 = c_body_l
+    x0 = x1 - c_post_l
+    rise = c_post_h - c_wall_top
+    post = [[x0 - rise - 1, c_wall_top - 1], [x0 - rise, c_wall_top], [x0, c_post_h],
+            [x1, c_post_h], [x1, c_wall_top - 1]]
+    for s in (-1, 1):
+        add("sketch.create", {"plane": "XZ", "offset": round(c_in_w / 2 if s > 0 else -c_in_w / 2 - c_wall, 4)})
+        add("sketch.line", {"points": [[round(a, 4), round(-b, 4)] for a, b in post], "closed": True})
+        add("sketch.finish", {})
+        add("solid.extrude", {"distance": str(c_wall), "operation": "join", "targets": [name]})
+    # push tab (+y rear corner): rib profile in the wall plane, closed with a
+    # concave fillet r=push_fillet into the wall's rear edge and convex
+    # rounds r=push_nose on the rear corners; plus the floor box; plan rear
+    # corners rounded r=push_r.  Built as its own body, trimmed at x = c_rear_gap+2
+    # (the wall is solid there: its honeycomb starts at c_rear_gap + c_wall_rim,
+    # so the stub must not re-plug cells) and joined.
+    pb = "push"
+    xe = c_rear_gap + 6
+    rib = [[push_x1, 0], [xe, 0], [xe, c_wall_top - 3], [c_rear_gap, c_wall_top - 3],
+           [c_rear_gap, push_h], [push_x1, push_h]]
+    add("sketch.create", {"plane": "XZ", "offset": round(c_in_w / 2, 4)})
+    add("sketch.line", {"points": [[round(a, 4), round(-b, 4)] for a, b in rib], "closed": True})
+    add("sketch.fillet", {"a": "l4", "b": "l5", "radius": str(push_fillet)})
+    add("sketch.fillet", {"a": "l5", "b": "l6", "radius": str(push_nose)})
+    add("sketch.fillet", {"a": "l6", "b": "l1", "radius": str(push_nose)})
+    add("sketch.finish", {})
+    add("solid.extrude", {"distance": str(c_wall), "operation": "new", "name": pb, "body_name": pb})
+    y0 = c_w / 2 - push_w
+    add("solid.box", {"length": str(round(xe - push_x1, 4)), "width": str(push_w), "height": str(c_floor),
+                      "corner": [str(push_x1), str(round(y0, 4)), "0"], "operation": "join", "targets": [pb]})
+    xt = c_rear_gap + 2
+    add("solid.box", {"length": "30", "width": "20", "height": "40", "corner": [str(xt), str(round(y0 - 5, 4)), "-5"],
+                      "operation": "cut", "targets": [pb]})
+    add("sketch.create", {"plane": "XY", "offset": -1})
+    add("sketch.rectangle.rounded", {"p0": [push_x1, round(y0, 4)], "p1": [c_rear_gap + 20, round(c_w / 2, 4)],
+                                     "radius": str(push_r)})
+    add("sketch.finish", {})
+    add("solid.extrude", {"distance": str(c_wall_top + 2), "operation": "intersect", "targets": [pb]})
+    add("solid.combine", {"target": name, "tools": [pb], "operation": "join"})
+    # bezel tabs
+
+    def box(lo, hi):
+        add("solid.box", {"length": str(round(hi[0] - lo[0], 4)), "width": str(round(hi[1] - lo[1], 4)),
+                          "height": str(round(hi[2] - lo[2], 4)),
+                          "corner": [str(round(v, 4)) for v in lo], "operation": "join", "targets": [name]})
+    for s in (-1, 1):
+        ya, yb = sorted([s * c_in_w / 2, s * (c_in_w / 2 + c_wall)])
+        box([c_body_l - 0.01, ya, pin_z - bz_tab_h / 2], [c_body_l + bezel_t, yb, pin_z + bz_tab_h / 2])
+    box([c_body_l - 0.01, -bz_tab_w / 2, 0], [c_body_l + bezel_t, bz_tab_w / 2, c_floor])
+    # pins: cylinder + conical tip; base sunk 0.4 into the wall (solid there) so the join overlaps
+    sink = 0.4
+    npins = 0
+    for x, d in [(hdd_side_hole_x[0], 1), (hdd_side_hole_x[1], 1)] + [(f[0], -1) for f in fingers]:
+        yb = -c_in_w / 2 - 0.01 if d > 0 else c_in_w / 2 + 0.01
+        ax = [0, d, 0]
+        add("solid.cylinder", {"diameter": str(pin_d), "height": str(round(pin_len - pin_tip + 0.01 + sink, 4)),
+                               "base": [str(x), str(round(yb - d * sink, 4)), str(round(pin_z, 4))],
+                               "axis": ax, "operation": "join", "targets": [name]})
+        add("solid.cone", {"diameter": str(pin_d), "height": str(pin_tip), "top_diameter": "1.0",
+                           "base": [str(x), str(round(yb + d * (pin_len - pin_tip), 4)), str(round(pin_z, 4))],
+                           "axis": ax, "operation": "join", "targets": [name]})
+        npins += 1
+    return {"floor": (fn, fplugs), "walls": wcells, "pins": npins}
+
+
 def dump(path):
     with open(path, "w") as f:
         json.dump(cmds, f, indent=1)
@@ -481,6 +638,11 @@ if __name__ == "__main__":
         n, plugs = emit_bezel()
         dump(sys.argv[2])
         print(f"bezel: open cells {n}, plugs {plugs}, commands {len(cmds)}")
+        sys.exit(0)
+    if len(sys.argv) > 2 and sys.argv[1] == "tray":
+        info = emit_tray_base()
+        dump(sys.argv[2])
+        print(f"tray base: {info}, commands {len(cmds)}")
         sys.exit(0)
     if len(sys.argv) > 2 and sys.argv[1] == "plate":
         n, plugs = emit_plate(sys.argv[2])
