@@ -304,6 +304,51 @@ def emit_wall(kind):
     return n, plugs
 
 
+def emit_rear():
+    """Emit the rear panel (`rear`).  Built in its own frame like
+    scad/bay.scad:rear() (x across, y height 0..b_in_h, z thickness, outer
+    face z=0), then moved by a rigid matrix into the assembled pose of
+    rear_placed(): translate([rear_x,0,0]) rotate([90,0,90]) (x->y, y->z, z->x).
+    Returns (n_open_cells, n_plugs)."""
+    name = "rear"
+    w = b_in_w - 2 * rear_clr
+    add_params()
+    add("component.create", {"name": "Rear", "activate": True})
+    add("solid.box", {"length": str(round(w, 4)), "width": "b_in_h", "height": str(rear_t),
+                      "corner": [str(round(-w / 2, 4)), "0", "0"],
+                      "operation": "new", "name": name, "body_name": name})
+
+    def tab(x0, y0, l, wd):
+        add("solid.box", {"length": str(round(l, 4)), "width": str(round(wd, 4)), "height": str(rear_t),
+                          "corner": [str(round(x0, 4)), str(round(y0, 4)), "0"],
+                          "operation": "join", "targets": [name]})
+    for y in rear_tab_y_bot:
+        tab(y - rear_tab / 2, -b_t, rear_tab, b_t)
+    for y in rear_tab_y_top:
+        tab(y - rear_tab / 2, b_in_h, rear_tab, b_t)
+    for s in (-1, 1):
+        tab(w / 2 if s > 0 else -w / 2 - b_wall, rear_tab_z - rear_tab / 2, b_wall, rear_tab)
+    size = [w - 2 * b_vent_rim, b_in_h - 2 * w_vent_rim]
+    keep = [[sata_notch_y - b_keep_margin - 2, -100, 100, sata_notch_z + b_keep_margin + 2 - b_in_h / 2]]
+    n, plugs = emit_honeycomb_patterned(size, keep, 0.0, b_in_h / 2, 0.0, rear_t, targets=[name])
+    ref, _ = hex_cells(size, hex_cell, hex_web, keep, 0.0, b_in_h / 2)
+    assert n == len(ref), f"open cells {n} != hex_cells {len(ref)}"
+    # cut after the honeycomb: the keep-out plugs would refill them otherwise
+    # SATA notch: open at the bottom edge and the +x edge
+    nx1, ny0 = w / 2 + b_wall + 1, -b_t - 1
+    add("solid.box", {"length": str(round(nx1 - sata_notch_y, 4)), "width": str(round(sata_notch_z - ny0, 4)),
+                      "height": str(rear_t + 2),
+                      "corner": [str(sata_notch_y), str(round(ny0, 4)), "-1"],
+                      "operation": "cut", "targets": [name]})
+    add("solid.box", {"length": str(round(w + 2 * b_wall + 2, 4)), "width": str(groove_w),
+                      "height": str(groove_d + 1),
+                      "corner": [str(round(-w / 2 - b_wall - 1, 4)), str(round(groove_z - groove_w / 2, 4)), "-1"],
+                      "operation": "cut", "targets": [name]})
+    m = [[0, 0, 1, rear_x], [1, 0, 0, 0], [0, 1, 0, 0]]
+    add("solid.move", {"bodies": [name], "matrix": [[round(v, 6) for v in row] for row in m]})
+    return n, plugs
+
+
 def dump(path):
     with open(path, "w") as f:
         json.dump(cmds, f, indent=1)
@@ -333,6 +378,11 @@ if __name__ == "__main__":
         n, plugs = emit_wall(sys.argv[2])
         dump(sys.argv[3])
         print(f"wall_{sys.argv[2]}: open cells {n}, plugs {plugs}, commands {len(cmds)}")
+        sys.exit(0)
+    if len(sys.argv) > 2 and sys.argv[1] == "rear":
+        n, plugs = emit_rear()
+        dump(sys.argv[2])
+        print(f"rear: open cells {n}, plugs {plugs}, commands {len(cmds)}")
         sys.exit(0)
     if len(sys.argv) > 2 and sys.argv[1] == "plate":
         n, plugs = emit_plate(sys.argv[2])
