@@ -514,26 +514,32 @@ def emit_rear():
     return n, plugs
 
 
-def notch_keep():
-    """scad notch_keep(): keep-out rects (u, v) = (b_in_h/2 - z, y) round the notch."""
-    m, zb = bz_hex_web, b_z1 - bz_pull_d
-    n = math.ceil(bz_pull_d)
-    out = []
-    for i in range(n):
-        z0 = zb + i * bz_pull_d / n
-        z1 = zb + (i + 1) * bz_pull_d / n
-        hw = (bz_pull_wb + (bz_pull_w - bz_pull_wb) * (z1 - zb) / bz_pull_d) / 2 + m
-        out.append([b_in_h / 2 - z1, bz_pull_y - hw, b_in_h / 2 - z0 + m, bz_pull_y + hw])
-    return out
+def bz_zone(z0, z1, y0, y1, m=b_keep_margin):
+    """scad bz_zone(): keep-out rect in the field frame (u = b_in_h/2 - z, v = y)."""
+    return [b_in_h / 2 - z1 - m, min(y0, y1) - m, b_in_h / 2 - z0 + m, max(y0, y1) + m]
+
+
+def bezel_keep():
+    """scad bezel_keep(): floor-tab zone, the four wall-tab zones, the lip zone."""
+    t = math.tan(math.radians(bz_tab_splay))
+    keep = [bz_zone(-bz_floor_clr, c_floor + bz_floor_clr, -bz_tab_w / 2 - bz_end_clr,
+                    bz_tab_w / 2 + bz_end_clr)]
+    for s in (-1, 1):
+        for z in bz_tab_z:
+            keep.append(bz_zone(z - bz_tab_h / 2 - bz_end_clr, z + bz_tab_h / 2 + bz_end_clr,
+                                s * (c_in_w / 2 - bz_tab_clr), s * (c_w / 2 + bezel_t * t)))
+    keep.append(bz_zone(bz_lip_top - bz_lip_t, bz_lip_top, bz_lip_y0, bz_lip_y1))
+    return keep
 
 
 def emit_bezel():
-    """Emit the bezel in the shared frame.  The plate is built in a local
-    frame (u = b_in_h/2 - z, v = y, w = x - c_body_l) so the intake honeycomb
-    is an ordinary XY field, then moved to the assembled pose.  Order matters
-    (R9): honeycomb cuts + keep-out plugs first, then the tab-zone solids, the
-    slots and the finger notch (which would otherwise be re-plugged), then the
-    lip.  Returns (n_open_cells, n_plugs)."""
+    """Emit the v0.4.0 bezel in the shared frame: a plate with a whole-face
+    honeycomb (bz_rim solid rim, no notch), a back-face lip, splayed wall-tab
+    slots (2 a side), the floor-tab slot and the slot corner reliefs.  The
+    plate is built in a local frame (u = b_in_h/2 - z, v = y, w = x - c_body_l)
+    so the honeycomb is an ordinary XY field, then moved to the assembled pose.
+    R9: honeycomb cuts + keep-out plugs first, the slots and reliefs after, so
+    no plug can re-close a slot.  Returns (n_open_cells, n_plugs)."""
     name = "bezel"
     x0 = c_body_l
     H2 = b_in_h / 2
@@ -543,10 +549,11 @@ def emit_bezel():
                       "height": str(bezel_t),
                       "corner": [str(round(H2 - b_z1, 4)), str(round(-b_w / 2, 4)), "0"],
                       "operation": "new", "name": name, "body_name": name})
-    size = [b_in_h - 8, b_in_w - 16]
-    keep = notch_keep()
-    n, plugs = emit_honeycomb_patterned(size, keep, 0.0, 0.0, 0.0, bezel_t, targets=[name])
-    ref, _ = hex_cells(size, hex_cell, hex_web, keep, 0.0, 0.0)
+    size = [b_h - 2 * bz_rim, b_w - 2 * bz_rim]
+    keep = bezel_keep()
+    n, plugs = emit_honeycomb_patterned(size, keep, 0.0, 0.0, 0.0, bezel_t, cell=bz_hex_cell,
+                                        web=bz_hex_web, targets=[name])
+    ref, _ = hex_cells(size, bz_hex_cell, bz_hex_web, keep, 0.0, 0.0)
     assert n == len(ref), f"open cells {n} != hex_cells {len(ref)}"
     m = [[0, 0, 1, x0], [0, 1, 0, 0], [-1, 0, 0, H2]]
     add("solid.move", {"bodies": [name], "matrix": [[round(v, 6) for v in row] for row in m]})
@@ -555,47 +562,46 @@ def emit_bezel():
         add("solid.box", {"length": str(round(hi[0] - lo[0], 4)), "width": str(round(hi[1] - lo[1], 4)),
                           "height": str(round(hi[2] - lo[2], 4)),
                           "corner": [str(round(v, 4)) for v in lo], "operation": op, "targets": [name]})
-    # tab zones stay solid: the scad subtracts them from the cut (geometric
-    # difference, so cells are truncated, not dropped) -> join them back
-    box([x0, -bz_tab_w / 2 - 3, -1], [x0 + bezel_t, bz_tab_w / 2 + 3, c_floor + 3], "join")
-    for s in (-1, 1):
-        ya, yb = sorted([s * (c_in_w / 2 - 3), s * min(c_w / 2 + 3, b_w / 2)])  # clipped to the plate
-        box([x0, ya, pin_z - bz_tab_h / 2 - 3], [x0 + bezel_t, yb, pin_z + bz_tab_h / 2 + 3], "join")
-    # tab slots
-    c, cf, ce = bz_tab_clr, bz_floor_clr, bz_end_clr
-    for s in (-1, 1):
-        ya, yb = sorted([s * c_in_w / 2 - s * c, s * (c_in_w / 2 + c_wall) + s * c])
-        box([x0 - 1, ya, pin_z - bz_tab_h / 2 - ce], [x0 + bezel_t + 1, yb, pin_z + bz_tab_h / 2 + ce], "cut")
-    box([x0 - 1, -bz_tab_w / 2 - ce, -cf], [x0 + bezel_t + 1, bz_tab_w / 2 + ce, c_floor + cf], "cut")
-    # finger notch: sketch on YZ (sketch x = y, sketch y = z); outline = the
-    # trapezoid joined to everything above the top edge; bottom corners r =
-    # bz_pull_r (convex), mouth corners eased r = bz_pull_f
-    yc, zt, zb = bz_pull_y, b_z1, b_z1 - bz_pull_d
-    k = (bz_pull_w - bz_pull_wb) / 2 / (bz_pull_d + 10)       # side slope dy/dz
-    hw_top = bz_pull_wb / 2 + k * bz_pull_d                    # half width at z = zt
-    yl, yr = -b_w / 2 - 2, b_w / 2 + 2
-    pts = [[yl, zt], [yc - hw_top, zt], [yc - bz_pull_wb / 2, zb], [yc + bz_pull_wb / 2, zb],
-           [yc + hw_top, zt], [yr, zt], [yr, zt + 5], [yl, zt + 5]]
-    add("sketch.create", {"plane": "YZ", "offset": round(x0 - 1, 4)})
-    add("sketch.line", {"points": [[round(a, 4), round(b, 4)] for a, b in pts], "closed": True})
-    add("sketch.fillet", {"a": "l2", "b": "l3", "radius": str(bz_pull_r)})
-    add("sketch.fillet", {"a": "l3", "b": "l4", "radius": str(bz_pull_r)})
-    add("sketch.fillet", {"a": "l1", "b": "l2", "radius": str(bz_pull_f)})
-    add("sketch.fillet", {"a": "l4", "b": "l5", "radius": str(bz_pull_f)})
-    add("sketch.finish", {})
-    add("solid.extrude", {"distance": str(bezel_t + 2), "operation": "cut", "targets": [name]})
     # lip: sketch on XZ (sketch x = x, sketch y = -z), chamfered rear-top edge
     lx0, lx1 = x0 + 0.01, x0 - bz_lip_d
-    lt = b_in_h - 0.2
-    lb = lt - bz_lip_t
-    lw = 3.5 * hex_dx
-    ly1 = 1.2
-    ly0 = ly1 - lw
+    lt, lb = bz_lip_top, bz_lip_top - bz_lip_t
     lp = [[lx0, lb], [lx1, lb], [lx1, lt - bz_lip_c], [lx1 + bz_lip_c, lt], [lx0, lt]]
-    add("sketch.create", {"plane": "XZ", "offset": round(ly0, 4)})
+    add("sketch.create", {"plane": "XZ", "offset": round(bz_lip_y0, 4)})
     add("sketch.line", {"points": [[round(a, 4), round(-b, 4)] for a, b in lp], "closed": True})
     add("sketch.finish", {})
-    add("solid.extrude", {"distance": str(round(lw, 4)), "operation": "join", "targets": [name]})
+    add("solid.extrude", {"distance": str(round(bz_lip_w, 4)), "operation": "join", "targets": [name]})
+    # splayed wall-tab slots, bz_tab2d(c, e=1) over bz_tab_h + 2*ce
+    c, ce, e = bz_tab_clr, bz_end_clr, 1.0
+    t = math.tan(math.radians(bz_tab_splay))
+    yo = c_w / 2
+    for s in (-1, 1):
+        poly = [[x0 - e, s * (c_in_w / 2 - c)], [x0 + bezel_t + e, s * (c_in_w / 2 - c)],
+                [x0 + bezel_t + e, s * (yo + (bezel_t + e) * t)], [x0 - e, s * (yo - e * t)]]
+        for z in bz_tab_z:
+            add("sketch.create", {"plane": "XY", "offset": round(z - bz_tab_h / 2 - ce, 4)})
+            add("sketch.line", {"points": [[round(a, 4), round(b, 4)] for a, b in poly], "closed": True})
+            add("sketch.finish", {})
+            add("solid.extrude", {"distance": str(round(bz_tab_h + 2 * ce, 4)), "operation": "cut",
+                                  "targets": [name]})
+    cf = bz_floor_clr
+    box([x0 - 1, -bz_tab_w / 2 - ce, -cf], [x0 + bezel_t + 1, bz_tab_w / 2 + ce, c_floor + cf], "cut")
+    # slot corner reliefs (upper slots): inner face's lower corner, sloped
+    # outer face's upper corner; rods along x (the outer one leans with the splay)
+    yi = c_in_w / 2 - c
+    z = bz_tab_z[1]
+    zl, zh = z - bz_tab_h / 2 - ce, z + bz_tab_h / 2 + ce
+    xa, xb = x0 - 1, x0 + bezel_t + 1
+    for s in (-1, 1):
+        for (ya, yb, zz) in ((yi, yi, zl), (yo - t, yo + (bezel_t + 1) * t, zh)):
+            names = []
+            for xx, yy in ((xa, ya), (xb, yb)):
+                nm = _sketch_name("rl")
+                add("sketch.create", {"plane": "YZ", "offset": round(xx, 4), "name": nm})
+                add("sketch.circle.center", {"center": [round(s * yy, 4), round(zz, 4)], "radius": relief_r})
+                add("sketch.finish", {})
+                names.append(nm)
+            add("solid.loft", {"sections": [{"sketch": q} for q in names], "operation": "cut",
+                               "targets": [name]})
     return n, plugs
 
 
