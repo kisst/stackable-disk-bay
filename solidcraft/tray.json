@@ -1,0 +1,1323 @@
+[
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_l",
+   "expression": "147.5",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_x0",
+   "expression": "-5.0",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_in_w",
+   "expression": "107.79999999999998",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_w",
+   "expression": "112.59999999999998",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_t",
+   "expression": "2.4",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_wall",
+   "expression": "2.4",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_in_h",
+   "expression": "30.0",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "tab_len",
+   "expression": "14.0",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "tab_clr",
+   "expression": "0.15",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_xc",
+   "expression": "(b_x0 + b_l) / 2",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "component.create",
+  "params": {
+   "name": "Tray",
+   "activate": true
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "144.5",
+   "width": "107.0",
+   "height": "2.0",
+   "corner": [
+    "3.0",
+    "-53.5",
+    "0"
+   ],
+   "operation": "new",
+   "name": "tray",
+   "body_name": "tray"
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    16.65,
+    -40.53
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 16,
+   "spacing": 7.8,
+   "count2": 7,
+   "spacing2": 13.51
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.0",
+   "operation": "cut",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    12.75,
+    -33.775
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 17,
+   "spacing": 7.8,
+   "count2": 6,
+   "spacing2": 13.51
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.0",
+   "operation": "cut",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "144.5",
+   "width": "27.0",
+   "height": "2.4",
+   "corner": [
+    "3.0",
+    "0",
+    "0"
+   ],
+   "operation": "new",
+   "name": "tw_m",
+   "body_name": "tw_m"
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    16.65,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 17,
+   "spacing": 7.8
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.4",
+   "operation": "cut",
+   "targets": [
+    "tw_m"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    12.75,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 17,
+   "spacing": 7.8
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.4",
+   "operation": "cut",
+   "targets": [
+    "tw_m"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": 0.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    28.35,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    129.75,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    137.55,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    24.45,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    32.25,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    125.85,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    133.65,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    141.45,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "2.4",
+   "operation": "join",
+   "targets": [
+    "tw_m"
+   ]
+  }
+ },
+ {
+  "command": "solid.move",
+  "params": {
+   "bodies": [
+    "tw_m"
+   ],
+   "matrix": [
+    [
+     1,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     -1,
+     -51.1
+    ],
+    [
+     0,
+     1,
+     0,
+     0
+    ]
+   ]
+  }
+ },
+ {
+  "command": "solid.combine",
+  "params": {
+   "target": "tray",
+   "tools": [
+    "tw_m"
+   ],
+   "operation": "join"
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "144.5",
+   "width": "27.0",
+   "height": "2.4",
+   "corner": [
+    "3.0",
+    "0",
+    "0"
+   ],
+   "operation": "new",
+   "name": "tw_p",
+   "body_name": "tw_p"
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    9.05,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 17,
+   "spacing": 7.8
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.4",
+   "operation": "cut",
+   "targets": [
+    "tw_p"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    12.95,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 17,
+   "spacing": 7.8
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.4",
+   "operation": "cut",
+   "targets": [
+    "tw_p"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": 0.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    12.95,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    20.75,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    28.55,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    36.35,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    106.55,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    114.35,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    122.15,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    129.95,
+    8.245
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    9.05,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    16.85,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    24.65,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    32.45,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    40.25,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    102.65,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    110.45,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    118.25,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    126.05,
+    15.0
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "2.4",
+   "operation": "join",
+   "targets": [
+    "tw_p"
+   ]
+  }
+ },
+ {
+  "command": "solid.move",
+  "params": {
+   "bodies": [
+    "tw_p"
+   ],
+   "matrix": [
+    [
+     -1,
+     0,
+     0,
+     150.5
+    ],
+    [
+     0,
+     0,
+     1,
+     51.1
+    ],
+    [
+     0,
+     1,
+     0,
+     0
+    ]
+   ]
+  }
+ },
+ {
+  "command": "solid.combine",
+  "params": {
+   "target": "tray",
+   "tools": [
+    "tw_p"
+   ],
+   "operation": "join"
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XZ",
+   "offset": -53.5
+  }
+ },
+ {
+  "command": "sketch.line",
+  "params": {
+   "points": [
+    [
+     135.7,
+     -26.0
+    ],
+    [
+     136.7,
+     -27.0
+    ],
+    [
+     139.5,
+     -29.8
+    ],
+    [
+     147.5,
+     -29.8
+    ],
+    [
+     147.5,
+     -26.0
+    ]
+   ],
+   "closed": true
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "2.4",
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XZ",
+   "offset": 51.1
+  }
+ },
+ {
+  "command": "sketch.line",
+  "params": {
+   "points": [
+    [
+     135.7,
+     -26.0
+    ],
+    [
+     136.7,
+     -27.0
+    ],
+    [
+     139.5,
+     -29.8
+    ],
+    [
+     147.5,
+     -29.8
+    ],
+    [
+     147.5,
+     -26.0
+    ]
+   ],
+   "closed": true
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "2.4",
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XZ",
+   "offset": 51.1
+  }
+ },
+ {
+  "command": "sketch.line",
+  "params": {
+   "points": [
+    [
+     -10.0,
+     0
+    ],
+    [
+     9.0,
+     0
+    ],
+    [
+     9.0,
+     -24.0
+    ],
+    [
+     3.0,
+     -24.0
+    ],
+    [
+     3.0,
+     -6.0
+    ],
+    [
+     -10.0,
+     -6.0
+    ]
+   ],
+   "closed": true
+  }
+ },
+ {
+  "command": "sketch.fillet",
+  "params": {
+   "a": "l4",
+   "b": "l5",
+   "radius": "8.0"
+  }
+ },
+ {
+  "command": "sketch.fillet",
+  "params": {
+   "a": "l5",
+   "b": "l6",
+   "radius": "2.5"
+  }
+ },
+ {
+  "command": "sketch.fillet",
+  "params": {
+   "a": "l6",
+   "b": "l1",
+   "radius": "2.5"
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "2.4",
+   "operation": "new",
+   "name": "push",
+   "body_name": "push"
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "19.0",
+   "width": "10.0",
+   "height": "2.0",
+   "corner": [
+    "-10.0",
+    "43.5",
+    "0"
+   ],
+   "operation": "join",
+   "targets": [
+    "push"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "30",
+   "width": "20",
+   "height": "40",
+   "corner": [
+    "5.0",
+    "38.5",
+    "-5"
+   ],
+   "operation": "cut",
+   "targets": [
+    "push"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1
+  }
+ },
+ {
+  "command": "sketch.rectangle.rounded",
+  "params": {
+   "p0": [
+    -10.0,
+    43.5
+   ],
+   "p1": [
+    23.0,
+    53.5
+   ],
+   "radius": "3.0"
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "29.0",
+   "operation": "intersect",
+   "targets": [
+    "push"
+   ]
+  }
+ },
+ {
+  "command": "solid.combine",
+  "params": {
+   "target": "tray",
+   "tools": [
+    "push"
+   ],
+   "operation": "join"
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "2.01",
+   "width": "2.4",
+   "height": "8.0",
+   "corner": [
+    "147.49",
+    "-53.5",
+    "4.35"
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "2.01",
+   "width": "2.4",
+   "height": "8.0",
+   "corner": [
+    "147.49",
+    "51.1",
+    "4.35"
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "2.01",
+   "width": "60.0",
+   "height": "2.0",
+   "corner": [
+    "147.49",
+    "-30.0",
+    "0"
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cylinder",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.31",
+   "base": [
+    "28.5",
+    "-51.51",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cone",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.2",
+   "top_diameter": "1.0",
+   "base": [
+    "28.5",
+    "-50.21",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cylinder",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.31",
+   "base": [
+    "130.1",
+    "-51.51",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cone",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.2",
+   "top_diameter": "1.0",
+   "base": [
+    "130.1",
+    "-50.21",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cylinder",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.31",
+   "base": [
+    "28.5",
+    "51.51",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    -1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cone",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.2",
+   "top_diameter": "1.0",
+   "base": [
+    "28.5",
+    "50.21",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    -1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cylinder",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.31",
+   "base": [
+    "130.1",
+    "51.51",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    -1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ },
+ {
+  "command": "solid.cone",
+  "params": {
+   "diameter": "2.6",
+   "height": "1.2",
+   "top_diameter": "1.0",
+   "base": [
+    "130.1",
+    "50.21",
+    "8.35"
+   ],
+   "axis": [
+    0,
+    -1,
+    0
+   ],
+   "operation": "join",
+   "targets": [
+    "tray"
+   ]
+  }
+ }
+]
