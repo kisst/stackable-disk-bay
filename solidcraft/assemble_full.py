@@ -21,6 +21,10 @@ def assemble(stage):
     info["wall_r"] = g.emit_wall("r")
     if lvl >= 1:
         info["rear"] = g.emit_rear()
+    if lvl >= 2:
+        # tray at its default (seated) spring preload sp_preload, then the bezel
+        info["tray"] = g.emit_tray_full()
+        info["bezel"] = g.emit_bezel()
     # every emitter re-declares the shared parameters; keep the first of each
     seen, out = set(), []
     for c in g.cmds:
