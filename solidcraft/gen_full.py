@@ -251,6 +251,59 @@ def emit_plate(kind):
     return n, plugs
 
 
+groove_z, groove_w, groove_d = 1.8, 1.0, 0.6
+
+
+def wall_keep():
+    """Honeycomb keep-out rects of the wall, relative to (b_xc, b_in_h/2)."""
+    keep = [bump_keep(b[0], b[1], b_xc, b_in_h / 2, wall_bump_af) for b in wall_bumps]
+    keep += [[x - rear_t / 2 - b_keep_margin - b_xc, -50, x + rear_t / 2 + b_keep_margin - b_xc, 50]
+             for x in wall_slot_x]
+    return keep
+
+
+def emit_wall(kind):
+    """Emit a wall (`wall_l` / `wall_r`).  Built in its own frame (x along the
+    bay, y height, z thickness, bumps +z) like scad/bay.scad:wall(), then moved
+    by a rigid matrix into the assembled pose of scad/bay.scad:walls():
+    l: translate([0,-b_in_w/2,0]) rotate([90,0,0]); r: the same turned 180 deg
+    about z at x = b_x0 + b_l, y = +b_in_w/2.  Returns (n_open_cells, n_plugs)."""
+    assert kind in ("l", "r")
+    name = f"wall_{kind}"
+    add_params()
+    add("component.create", {"name": f"Wall_{kind}", "activate": True})
+    add("solid.box", {"length": "b_l - b_x0", "width": "b_in_h", "height": "b_wall",
+                      "corner": ["b_x0", "0", "0"], "operation": "new", "name": name, "body_name": name})
+    for x in tab_x:
+        for y0 in (-b_t, b_in_h):
+            add("solid.box", {"length": "tab_len", "width": "b_t", "height": "b_wall",
+                              "corner": [str(round(x - tab_len / 2, 4)), str(round(y0, 4)), "0"],
+                              "operation": "join", "targets": [name]})
+    for x in wall_slot_x:
+        c = rear_fit_clr
+        add("solid.box", {"length": str(round(rear_t + 2 * c, 4)), "width": str(round(rear_tab + 2 * c, 4)),
+                          "height": "b_wall + 2",
+                          "center": [str(round(x, 4)), str(rear_tab_z), "b_wall/2"], "operation": "cut",
+                          "targets": [name]})
+    add("solid.box", {"length": "b_l - b_x0 + 2", "width": str(groove_w), "height": str(groove_d + 1),
+                      "corner": ["b_x0 - 1", str(round(groove_z - groove_w / 2, 4)), str(round(b_wall - groove_d, 4))],
+                      "operation": "cut", "targets": [name]})
+    size = [b_l - b_x0 - 2 * w_vent_rim, b_in_h - 2 * w_vent_rim]
+    keep = wall_keep()
+    n, plugs = emit_honeycomb_patterned(size, keep, b_xc, b_in_h / 2, 0.0, b_wall, targets=[name])
+    r = wall_bump_af / math.sqrt(3)
+    for bx, by in wall_bumps:
+        emit_hex(bx, by, r, b_wall, str(bump_h), "join", [name])
+    ref, _ = hex_cells(size, hex_cell, hex_web, keep, b_xc, b_in_h / 2)
+    assert n == len(ref), f"open cells {n} != hex_cells {len(ref)}"
+    if kind == "l":
+        m = [[1, 0, 0, 0], [0, 0, -1, -b_in_w / 2], [0, 1, 0, 0]]
+    else:
+        m = [[-1, 0, 0, b_x0 + b_l], [0, 0, 1, b_in_w / 2], [0, 1, 0, 0]]
+    add("solid.move", {"bodies": [name], "matrix": [[round(v, 6) for v in row] for row in m]})
+    return n, plugs
+
+
 def dump(path):
     with open(path, "w") as f:
         json.dump(cmds, f, indent=1)
@@ -276,6 +329,11 @@ def _demo(path):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 3 and sys.argv[1] == "wall":
+        n, plugs = emit_wall(sys.argv[2])
+        dump(sys.argv[3])
+        print(f"wall_{sys.argv[2]}: open cells {n}, plugs {plugs}, commands {len(cmds)}")
+        sys.exit(0)
     if len(sys.argv) > 2 and sys.argv[1] == "plate":
         n, plugs = emit_plate(sys.argv[2])
         dump(sys.argv[3])
