@@ -122,10 +122,25 @@ def bump_keep(x, y, cx, cy, af):
 
 
 def hits_keep(cx, cy, r, keep):
+    """scad hits_keep(): k = [x0, y0, x1, y1] box, or slant [ox, oy, a, u0, u1, v0, v1] (cell as a circle)."""
     for k in keep:
-        if cx + r > k[0] and cx - r < k[2] and cy + r > k[1] and cy - r < k[3]:
-            return True
+        if len(k) == 4:
+            if cx + r > k[0] and cx - r < k[2] and cy + r > k[1] and cy - r < k[3]:
+                return True
+        else:
+            dx, dy, a = cx - k[0], cy - k[1], math.radians(k[2])
+            u = dx * math.cos(a) + dy * math.sin(a)
+            v = -dx * math.sin(a) + dy * math.cos(a)
+            if u + r > k[3] and u - r < k[4] and v + r > k[5] and v - r < k[6]:
+                return True
     return False
+
+
+def mirror_keep_x(k):
+    """Keep-out reflected x -> -x (box or slant)."""
+    if len(k) == 4:
+        return [-k[2], k[1], -k[0], k[3]]
+    return [-k[0], k[1], 180 - k[2], k[3], k[4], -k[6], -k[5]]
 
 
 def _lattice(size, cell, web, keep, phase):
@@ -606,16 +621,13 @@ def emit_bezel():
 
 
 def finger_keep(xp, zt, d, cx, cz):
-    """scad finger_keep(): bbox of a finger's slot ring + recess, plus the web margin."""
+    """scad finger_keep(): slant keep-out along the finger beam (slot ring + recess, plus the web margin)."""
     slot_half = finger_w / 2 + finger_gap
     L = (c_wall_top - finger_rim - slot_half * math.cos(math.radians(finger_angle)) - zt) \
         / math.sin(math.radians(finger_angle))
-    a = math.radians(finger_angle if d > 0 else 180 - finger_angle)
-    pts = [[xp + u * math.cos(a) - v * math.sin(a), zt + u * math.sin(a) + v * math.cos(a)]
-           for u in (-slot_half, L + finger_w / 2) for v in (-slot_half, slot_half)]
     m = b_keep_margin
-    return [min(p[0] for p in pts) - m - cx, min(p[1] for p in pts) - m - cz,
-            max(p[0] for p in pts) + m - cx, max(p[1] for p in pts) + m - cz]
+    return [xp - cx, zt - cz, finger_angle if d > 0 else 180 - finger_angle,
+            -slot_half - m, L + finger_w / 2 + m, -slot_half - m, slot_half + m]
 
 
 def tray_wall_keep(s, fc_x, fc_z):
@@ -624,10 +636,16 @@ def tray_wall_keep(s, fc_x, fc_z):
     keep = []
     if s > 0:
         keep += [finger_keep(f[0], pin_z, f[1], fc_x, fc_z) for f in fingers]
+    if s > 0:
+        r = c_hex_cell / math.sqrt(3) + b_keep_margin
+        for f in fingers:
+            c = service_cell(f)
+            keep.append([c[0] - r - fc_x, c[1] - r - fc_z, c[0] + r - fc_x, c[1] + r - fc_z])
     keep.append([sp_x[0] - b_keep_margin - fc_x, sp_slit_z - b_keep_margin - fc_z,
                  sp_x[1] + b_keep_margin - fc_x, 50])
     if s < 0:
-        keep += [[x - 4 - fc_x, pin_z - 4 - fc_z, x + 4 - fc_x, pin_z + 4 - fc_z] for x in hdd_side_hole_x]
+        r = pin_d / 2 + b_keep_margin
+        keep += [[x - r - fc_x, pin_z - r - fc_z, x + r - fc_x, pin_z + r - fc_z] for x in hdd_side_hole_x]
     keep.append([c_body_l - 8 - fc_x, -50, c_body_l + 5 - fc_x, 50])
     return keep
 
@@ -665,7 +683,7 @@ def emit_tray_base():
         keep = tray_wall_keep(s, fc, fc_z)
         ph = (b_xc - fc, b_in_h / 2 - fc_z)
         if s > 0:   # mirrored in x
-            keep = [[-k[2], k[1], -k[0], k[3]] for k in keep]
+            keep = [mirror_keep_x(k) for k in keep]
             ph = (-ph[0], ph[1])
         n, plugs = emit_honeycomb_patterned(wsize, keep, fc, fc_z, 0.0, c_wall, phase=ph,
                                             cell=c_hex_cell, web=c_hex_web, targets=[wn])
@@ -750,6 +768,13 @@ sp_hump_ramp, sp_hump_r, sp_fillet_r, sp_crest_r = 15.0, 6.0, 1.5, 1.0
 sp_bump_h = b_in_h - sp_top + sp_lock
 slot_half = finger_w / 2 + finger_gap
 service_flat = 1.0
+service_overlap = 1.0
+
+
+def service_cell(f):
+    """scad service_cell(): the service hole's hex centre (x, z), toward the finger's slot."""
+    j = round((pin_z - b_in_h / 2) / hex_dy)
+    return [f[0] - f[1] * (slot_half * math.sqrt(2) + c_hex_cell / 2 - service_overlap), b_in_h / 2 + j * hex_dy]
 
 
 def _clip(poly, nrm, c):
@@ -849,11 +874,7 @@ def emit_fingers(name="tray"):
         _cut_xz(finger_beam_pts(xp, pin_z, d), c_w / 2 - rec, rec + 1, [name])
     k = math.tan(math.radians(30))
     for f in fingers:
-        j = round((pin_z - b_in_h / 2) / hex_dy)
-        x0 = b_xc + (0 if j % 2 == 0 else hex_dx / 2)
-        xt = f[0] - f[1] * (slot_half * math.sqrt(2) + c_hex_cell / 2)
-        i = round((xt - x0) / hex_dx)
-        c = [x0 + i * hex_dx, b_in_h / 2 + j * hex_dy]
+        c = service_cell(f)
         assert abs(c[0] - f[0]) - c_hex_cell / 2 > finger_w / 2 * math.sqrt(2) + 0.1, \
             "service hole would cut the finger"
         tw = math.copysign(1, f[0] - c[0])
