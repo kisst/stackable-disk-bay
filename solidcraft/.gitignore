@@ -21,3 +21,5 @@ bay_pair.*
 gen.py
 oracle_full.txt
 bay_full.eval.json
+hc_demo.json
+int_all.json

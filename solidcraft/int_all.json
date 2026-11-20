@@ -1,9 +1,0 @@
-[
- {"command":"inspect.interference","params":{"bodies":["plate_top","plate_bottom","wall_l","wall_r","rear"]}},
- {"command":"inspect.interference","params":{"bodies":["tray","plate_top","plate_bottom","wall_l","wall_r","rear"]}},
- {"command":"inspect.interference","params":{"bodies":["bezel","tray"]}},
- {"command":"inspect.interference","params":{"bodies":["hdd","tray","bezel","rear"]}},
- {"command":"inspect.interference","params":{}},
- {"command":"inspect.clearance","params":{"bodies":["tray"],"against":["plate_top","plate_bottom","wall_l","wall_r","rear"],"clearance":0.5}},
- {"command":"inspect.clearance","params":{"bodies":["hdd"],"against":["rear","bezel"],"clearance":3}}
-]
