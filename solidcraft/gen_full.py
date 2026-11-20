@@ -806,6 +806,74 @@ def emit_spring_lock(name="tray", defl=sp_preload):
         add("solid.extrude", {"distance": str(c_wall + 2), "operation": "cut", "targets": [name]})
 
 
+# ---- reference 3.5" drive (scad/hdd.scad) ----------------------------------
+hdd_r, hdd_lid, hdd_lid_in = 2.54, 0.75, 5.6
+hdd_side_hole_z = 6.35
+hdd_bot_hole_x = [41.28, 85.73, 117.48]
+hdd_bot_hole_y = 95.25 / 2
+hdd_hole_minor_d, hdd_hole_depth = 2.8, 3.56
+sata_pitch, sata_sig_l, sata_key_l, sata_pwr_l = 1.27, 10.4, 2.4, 20.6
+sata_tongue_t, sata_tongue_z, sata_tongue_depth = 1.6, 2.6, 6.0
+sata_pocket_h, sata_pocket_d, sata_pocket_pad = 9.0, 6.5, 1.5
+sata_y0 = hdd_w / 2 - 13.43
+sata_l = sata_sig_l + sata_key_l + sata_pwr_l
+sata_z0 = c_floor + sata_tongue_z
+
+
+def emit_hdd():
+    """Reference drive in the shared frame: base + raised inset lid (rounded
+    rects via filleted rectangle sketches), side/bottom tapped holes, connector
+    pocket, SATA tongue (blades + keying feet).  The goldenrod contact grooves
+    (0.1 mm deep, colour-only) are omitted."""
+    name = "hdd"
+    add("component.create", {"name": "Hdd", "activate": True})
+
+    def rrect(x0, l, w, z, h, op, first=False):
+        add("sketch.create", {"plane": "XY", "offset": round(z, 4)})
+        add("sketch.line", {"points": [[x0, -w / 2], [x0 + l, -w / 2], [x0 + l, w / 2], [x0, w / 2]], "closed": True})
+        for a, b in (("l1", "l2"), ("l2", "l3"), ("l3", "l4"), ("l4", "l1")):
+            add("sketch.fillet", {"a": a, "b": b, "radius": str(hdd_r)})
+        add("sketch.finish", {})
+        p = {"distance": str(round(h, 4)), "operation": op}
+        if first:
+            p.update({"name": name, "body_name": name})
+        else:
+            p["targets"] = [name]
+        add("solid.extrude", p)
+    rrect(0.0, hdd_l, hdd_w, c_floor, hdd_h - hdd_lid, "new", True)
+    rrect(hdd_lid_in, hdd_l - 2 * hdd_lid_in, hdd_w - 2 * hdd_lid_in, c_floor, hdd_h, "join")
+    # tapped holes
+    zc = c_floor + hdd_side_hole_z
+    for x in (28.5, 130.1):
+        for s in (-1, 1):
+            add("solid.cylinder", {"diameter": str(hdd_hole_minor_d), "height": str(round(hdd_hole_depth + 0.1, 4)),
+                                   "base": [str(x), str(round(s * hdd_w / 2 + s * 0.1, 4)), str(zc)],
+                                   "axis": [0, -s, 0], "operation": "cut", "targets": [name]})
+    for x in hdd_bot_hole_x:
+        for s in (-1, 1):
+            add("solid.cylinder", {"diameter": str(hdd_hole_minor_d), "height": str(round(hdd_hole_depth + 0.1, 4)),
+                                   "base": [str(x), str(round(s * hdd_bot_hole_y, 4)), str(c_floor - 0.1)],
+                                   "axis": [0, 0, 1], "operation": "cut", "targets": [name]})
+
+    def box(x0, x1, ya, yb, z0, z1, op):
+        # connector frame: u = sata_y0 - y, so u in [ua, ub] -> y in [y0-ub, y0-ua]
+        add("solid.box", {"length": str(round(x1 - x0, 4)), "width": str(round(yb - ya, 4)),
+                          "height": str(round(z1 - z0, 4)),
+                          "corner": [str(round(x0, 4)), str(round(ya, 4)), str(round(z0, 4))],
+                          "operation": op, "targets": [name]})
+    # connector pocket: u -pad .. sata_l+pad, x -0.1 .. pocket_d, z floor-0.1 .. floor+pocket_h
+    box(-0.1, sata_pocket_d, sata_y0 - sata_l - sata_pocket_pad, sata_y0 + sata_pocket_pad,
+        c_floor - 0.1, c_floor + sata_pocket_h, "cut")
+    # SATA tongue: signal blade, power blade, two keying feet
+    tx0, tx1 = 0.3, 0.3 + sata_tongue_depth
+    zt1 = sata_z0 + sata_tongue_t
+    box(tx0, tx1, sata_y0 - sata_sig_l, sata_y0, sata_z0, zt1, "join")
+    up = sata_sig_l + sata_key_l
+    box(tx0, tx1, sata_y0 - up - sata_pwr_l, sata_y0 - up, sata_z0, zt1, "join")
+    for u in (0.0, up):
+        box(tx0, tx1, sata_y0 - u - 0.8, sata_y0 - u, sata_z0 - 1.0, sata_z0, "join")
+
+
 def emit_tray_full():
     info = emit_tray_base()
     emit_fingers()
@@ -857,6 +925,11 @@ if __name__ == "__main__":
         info = emit_tray_full() if "--base" not in sys.argv else emit_tray_base()
         dump(sys.argv[2])
         print(f"tray: {info}, commands {len(cmds)}")
+        sys.exit(0)
+    if len(sys.argv) > 2 and sys.argv[1] == "hdd":
+        emit_hdd()
+        dump(sys.argv[2])
+        print(f"hdd: commands {len(cmds)}")
         sys.exit(0)
     if len(sys.argv) > 2 and sys.argv[1] == "plate":
         n, plugs = emit_plate(sys.argv[2])
