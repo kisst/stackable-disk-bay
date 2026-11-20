@@ -19,6 +19,8 @@ def assemble(stage):
     info["plate_bottom"] = g.emit_plate("bottom")
     info["wall_l"] = g.emit_wall("l")
     info["wall_r"] = g.emit_wall("r")
+    if lvl >= 1:
+        info["rear"] = g.emit_rear()
     # every emitter re-declares the shared parameters; keep the first of each
     seen, out = set(), []
     for c in g.cmds:
