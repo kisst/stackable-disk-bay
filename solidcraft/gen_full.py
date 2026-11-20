@@ -7,6 +7,7 @@ staggered `sketch.pattern.rectangular` cuts plus hex plugs over the keep-out
 cells (see emit_honeycomb_patterned), not one cut per cell."""
 import json, math, sys
 
+# NOTE: values copied from scad/params.scad - that file is the authority.
 # ---- params (scad/params.scad) -------------------------------------------
 hdd_w, hdd_l, hdd_h = 101.6, 147.0, 26.1
 clr, slide_clr = 0.3, 0.4
