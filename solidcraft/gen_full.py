@@ -599,6 +599,220 @@ def emit_tray_base():
     return {"floor": (fn, fplugs), "walls": wcells, "pins": npins}
 
 
+# ---- fingers + spring lock (Task 6): polygons computed from caddy.scad's 2D math ----
+finger_t, finger_tip_flat = 1.6, 1.6
+sp_hump_ramp, sp_hump_r, sp_fillet_r, sp_crest_r = 15.0, 6.0, 1.5, 1.0
+sp_bump_h = b_in_h - sp_top + sp_lock
+slot_half = finger_w / 2 + finger_gap
+service_flat = 1.0
+
+
+def _clip(poly, nrm, c):
+    """Sutherland-Hodgman: keep points with dot(nrm, p) <= c."""
+    out = []
+    for i, p in enumerate(poly):
+        q = poly[(i + 1) % len(poly)]
+        dp = nrm[0] * p[0] + nrm[1] * p[1] - c
+        dq = nrm[0] * q[0] + nrm[1] * q[1] - c
+        if dp <= 1e-12:
+            out.append(p)
+        if (dp < -1e-12 and dq > 1e-12) or (dp > 1e-12 and dq < -1e-12):
+            t = dp / (dp - dq)
+            out.append((p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])))
+    return out
+
+
+def _offset_convex(poly, d):
+    """Mitred offset (OpenSCAD offset(delta=d)) of a convex CCW polygon."""
+    n = len(poly)
+    lines = []
+    for i in range(n):
+        p, q = poly[i], poly[(i + 1) % n]
+        ex, ey = q[0] - p[0], q[1] - p[1]
+        ln = math.hypot(ex, ey)
+        nx, ny = ey / ln, -ex / ln
+        lines.append((nx, ny, nx * p[0] + ny * p[1] + d))
+    out = []
+    for i in range(n):
+        a, b = lines[i - 1], lines[i]
+        det = a[0] * b[1] - a[1] * b[0]
+        out.append(((a[2] * b[1] - b[2] * a[1]) / det, (a[0] * b[2] - b[0] * a[2]) / det))
+    return out
+
+
+def finger_len(zt):
+    return (c_wall_top - finger_rim - slot_half * math.cos(math.radians(finger_angle)) - zt) \
+        / math.sin(math.radians(finger_angle))
+
+
+def finger_beam_pts(xp, zt, d, extra=0.0):
+    L = finger_len(zt)
+    a = math.radians(finger_angle if d > 0 else 180 - finger_angle)
+    ca, sa = math.cos(a), math.sin(a)
+    loc = [(-finger_w / 2, -finger_w / 2), (L + finger_w / 2 + extra, -finger_w / 2),
+           (L + finger_w / 2 + extra, finger_w / 2), (-finger_w / 2, finger_w / 2)]
+    pts = [(xp + u * ca - v * sa, zt + u * sa + v * ca) for u, v in loc]
+    apex = zt - finger_w / 2 * (math.sin(math.radians(finger_angle)) + math.cos(math.radians(finger_angle)))
+    return _clip(pts, (0, -1), -(apex + finger_tip_flat / 2))   # keep z >= apex + flat/2
+
+
+def finger_slot_pts(xp, zt, d):
+    """finger_slot2d: ring (offset gap of the long beam minus the beam), kept up to the root line."""
+    L = finger_len(zt)
+    a = math.radians(finger_angle if d > 0 else 180 - finger_angle)
+    ex, ey = math.cos(a), math.sin(a)
+    pe = finger_beam_pts(xp, zt, d, 20)
+    oe = _offset_convex(pe, finger_gap)
+    c = xp * ex + zt * ey + L                      # root line: u = L
+    o2, p2 = _clip(oe, (ex, ey), c), _clip(pe, (ex, ey), c)
+
+    def on(q):
+        return abs(q[0] * ex + q[1] * ey - c) < 1e-6
+    # clip edge = consecutive pair of on-line vertices (CCW order)
+    def clip_edge(poly):
+        n = len(poly)
+        for i in range(n):
+            if on(poly[i]) and on(poly[(i + 1) % n]):
+                return i
+    ia, ic = clip_edge(o2), clip_edge(p2)
+    n, m = len(o2), len(p2)
+    A, B = o2[ia], o2[(ia + 1) % n]
+    C, D = p2[ic], p2[(ic + 1) % m]
+    path = [o2[(ia + 1 + k) % n] for k in range(n)]           # B ... A (CCW)
+    path += [p2[(ic - k) % m] for k in range(m)]               # C, prev ... D (reversed)
+    return path
+
+
+def _r(p):
+    return [round(p[0], 5), round(-p[1], 5)]       # XZ sketch: (x, -z)
+
+
+def _cut_xz(pts, y_off, dist, targets, op="cut"):
+    add("sketch.create", {"plane": "XZ", "offset": round(y_off, 4)})
+    add("sketch.line", {"points": [_r(p) for p in pts], "closed": True})
+    add("sketch.finish", {})
+    add("solid.extrude", {"distance": str(round(dist, 4)), "operation": op, "targets": targets})
+
+
+def emit_fingers(name="tray"):
+    """Diagonal cantilever fingers on the +y wall: through slot, outer-face
+    recess (beam thinned to finger_t), and the service holes."""
+    y0 = c_in_w / 2
+    for xp, d in fingers:
+        _cut_xz(finger_slot_pts(xp, pin_z, d), y0 - 1, c_wall + 2, [name])
+        rec = c_wall - finger_t
+        _cut_xz(finger_beam_pts(xp, pin_z, d), c_w / 2 - rec, rec + 1, [name])
+    k = math.tan(math.radians(30))
+    for f in fingers:
+        j = round((pin_z - b_in_h / 2) / hex_dy)
+        x0 = b_xc + (0 if j % 2 == 0 else hex_dx / 2)
+        xt = f[0] - f[1] * (slot_half * math.sqrt(2) + c_hex_cell / 2)
+        i = round((xt - x0) / hex_dx)
+        c = [x0 + i * hex_dx, b_in_h / 2 + j * hex_dy]
+        assert abs(c[0] - f[0]) - c_hex_cell / 2 > finger_w / 2 * math.sqrt(2) + 0.1, \
+            "service hole would cut the finger"
+        tw = math.copysign(1, f[0] - c[0])
+        h = c_hex_cell / math.sqrt(3) / 2
+        xf = c[0] + tw * c_hex_cell / 2
+        dC = tw * (xf - (f[0] - tw * slot_half * math.sqrt(2)))
+        tu = max(0, (c[1] + h - pin_z - dC) / (1 + k))
+        tl = max(0, (pin_z - dC - c[1] + h) / (1 + k))
+        pu = (xf + tw * tu, c[1] + h - tu * k)
+        pl = (xf + tw * tl, c[1] - h + tl * k)
+        g = 0.01   # grown so the pieces overlap the slot rather than coincide
+        R = c_hex_cell / math.sqrt(3) + g / math.cos(math.radians(30))
+        hexp = [(c[0] + R * math.cos(math.radians(30 + 60 * q)), c[1] + R * math.sin(math.radians(30 + 60 * q)))
+                for q in range(6)]
+        dz = service_flat / (1 / k + 1)
+        tris = [[(xf, c[1] + h), pu, (xf, pin_z)], [(xf, c[1] - h), pl, (xf, pin_z)]]
+        for sg, pp in ((1, pu), (-1, pl)):
+            tris.append([pp, (pp[0] - tw * dz / k, pp[1] + sg * dz), (pp[0] + tw * dz, pp[1] + sg * dz)])
+        pieces = [hexp]
+        for t in tris:
+            area = sum(t[q][0] * t[(q + 1) % 3][1] - t[(q + 1) % 3][0] * t[q][1] for q in range(3))
+            if abs(area) < 1e-9:
+                continue
+            if area < 0:
+                t = t[::-1]
+            pieces.append(_offset_convex(t, g))
+        for pc in pieces:
+            _cut_xz(pc, y0 - 1, c_wall + 2, [name])
+    return {"service_cells": None}
+
+
+def _fillet_poly(pts, radii, seg_deg=4.0):
+    """Round the corners of a closed polygon: radii[i] (or 0) at pts[i], arcs sampled."""
+    out = []
+    n = len(pts)
+    for i in range(n):
+        r = radii.get(i, 0)
+        p, a, b = pts[i], pts[i - 1], pts[(i + 1) % n]
+        if not r:
+            out.append(p)
+            continue
+        v1 = (a[0] - p[0], a[1] - p[1]); v2 = (b[0] - p[0], b[1] - p[1])
+        l1, l2 = math.hypot(*v1), math.hypot(*v2)
+        u1 = (v1[0] / l1, v1[1] / l1); u2 = (v2[0] / l2, v2[1] / l2)
+        ang = math.acos(max(-1, min(1, u1[0] * u2[0] + u1[1] * u2[1])))   # interior angle between edges
+        t = r / math.tan(ang / 2)
+        assert t <= min(l1, l2) + 1e-9, f"fillet {r} too big at corner {i}"
+        bis = (u1[0] + u2[0], u1[1] + u2[1]); bl = math.hypot(*bis)
+        bis = (bis[0] / bl, bis[1] / bl)
+        cd = r / math.sin(ang / 2)
+        ctr = (p[0] + bis[0] * cd, p[1] + bis[1] * cd)
+        t1 = (p[0] + u1[0] * t, p[1] + u1[1] * t); t2 = (p[0] + u2[0] * t, p[1] + u2[1] * t)
+        a1 = math.atan2(t1[1] - ctr[1], t1[0] - ctr[0]); a2 = math.atan2(t2[1] - ctr[1], t2[0] - ctr[0])
+        da = (a2 - a1 + math.pi) % (2 * math.pi) - math.pi
+        ns = max(2, math.ceil(abs(math.degrees(da)) / seg_deg))
+        out += [(ctr[0] + r * math.cos(a1 + da * q / ns), ctr[1] + r * math.sin(a1 + da * q / ns))
+                for q in range(ns + 1)]
+    return out
+
+
+def spring_profile_pts(defl=0.0):
+    """spring_profile2d (hump + bump, rounded), from zr-1 up; the hump's deep
+    body below the rim is omitted (it is wall anyway, and would re-plug vents)."""
+    a, b = sp_x[0] - 3, sp_x[1] + 3
+    run = sp_rise / math.tan(math.radians(sp_hump_ramp))
+    zr = c_wall_top
+    x0, x1 = sp_bump_x - sp_flat / 2, sp_bump_x + sp_flat / 2
+    zb, zt = sp_top - defl - 0.01, sp_top + sp_bump_h - defl
+    xl = x0 - (zt - zb) / math.tan(math.radians(sp_lead))      # bump foot (bottom) corners
+    xr = x1 + (zt - zb) / math.tan(math.radians(sp_hold))
+    # where each ramp leaves the hump's crest line z = sp_top
+    yl = x0 - (zt - sp_top) / math.tan(math.radians(sp_lead))
+    yr = x1 + (zt - sp_top) / math.tan(math.radians(sp_hold))
+    pts = [(a - run - 4, zr - 1), (a - run - 4, zr), (a - run, zr), (a, sp_top), (yl, sp_top), (x0, zt),
+           (x1, zt), (yr, sp_top), (b, sp_top), (b + run, zr), (b + run + 4, zr), (b + run + 4, zr - 1)]
+    rad = {2: sp_hump_r, 3: sp_hump_r, 4: sp_fillet_r, 5: sp_crest_r, 6: sp_crest_r, 7: sp_fillet_r,
+           8: sp_hump_r, 9: sp_hump_r}
+    return _fillet_poly(pts, rad)
+
+
+def emit_spring_lock(name="tray", defl=sp_preload):
+    """Hump + bump joined on both wall tops, then the slits cut through."""
+    # the oracle `tray` part is caddy_tray(spring_defl = sp_preload) (assembled.scad), so default to that
+    pr = spring_profile_pts(defl)
+    for s in (-1, 1):
+        y = c_in_w / 2 if s > 0 else -c_in_w / 2 - c_wall
+        _cut_xz(pr, y, c_wall, [name], op="join")
+    r = sp_gap / 2
+    for s in (-1, 1):
+        y = c_in_w / 2 - 1 if s > 0 else -c_in_w / 2 - c_wall - 1
+        add("sketch.create", {"plane": "XZ", "offset": round(y, 4)})
+        add("sketch.slot.center_to_center", {"p0": [sp_x[0] + r, round(-(sp_slit_z + r), 4)],
+                                             "p1": [sp_x[1] - r, round(-(sp_slit_z + r), 4)], "width": str(sp_gap)})
+        add("sketch.finish", {})
+        add("solid.extrude", {"distance": str(c_wall + 2), "operation": "cut", "targets": [name]})
+
+
+def emit_tray_full():
+    info = emit_tray_base()
+    emit_fingers()
+    emit_spring_lock()
+    return info
+
+
 def dump(path):
     with open(path, "w") as f:
         json.dump(cmds, f, indent=1)
@@ -640,9 +854,9 @@ if __name__ == "__main__":
         print(f"bezel: open cells {n}, plugs {plugs}, commands {len(cmds)}")
         sys.exit(0)
     if len(sys.argv) > 2 and sys.argv[1] == "tray":
-        info = emit_tray_base()
+        info = emit_tray_full() if "--base" not in sys.argv else emit_tray_base()
         dump(sys.argv[2])
-        print(f"tray base: {info}, commands {len(cmds)}")
+        print(f"tray: {info}, commands {len(cmds)}")
         sys.exit(0)
     if len(sys.argv) > 2 and sys.argv[1] == "plate":
         n, plugs = emit_plate(sys.argv[2])
