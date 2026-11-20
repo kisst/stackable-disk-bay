@@ -43,8 +43,16 @@ def main(argv):
     step = float(argv[4]) if len(argv) > 4 else 1.0
     tol = float(argv[5]) if len(argv) > 5 else 0.002
     # off-lattice offset keeps samples off exact face/edge coincidences
-    xs = [-5 + 0.013 + i * step for i in range(int(153 / step))]
-    ys = [-57 + 0.017 + j * step for j in range(int(114 / step))]
+    # sample the full extent of both parts (not a fixed window), so parts deep
+    # in x (tray, drive) are probed to their ends; earlier parts keep -5/-57 as floor
+    lo, hi = [-5.0, -57.0], [148.0, 57.0]
+    for path in (argv[1], argv[2]):
+        for tri in triangles(path):
+            for v in tri:
+                for k in (0, 1):
+                    lo[k], hi[k] = min(lo[k], v[k]), max(hi[k], v[k])
+    xs = [lo[0] + 0.013 + i * step for i in range(int((hi[0] - lo[0]) / step) + 1)]
+    ys = [lo[1] + 0.017 + j * step for j in range(int((hi[1] - lo[1]) / step) + 1)]
     diffs, solid = [], 0
     for x in xs:
         for y in ys:
