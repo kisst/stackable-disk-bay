@@ -1,3 +1,23 @@
 oracle/
 *.results.json
 hc_demo.sc
+# build artifacts (generators in *.py are the source of truth)
+*.sc
+*.sc.bak
+*.bak
+*.log
+*.err
+*.got.stl
+*.results.json
+plate_*.json
+wall_*.json
+rear.json
+bezel.json
+tray.json
+hdd.json
+shell*.json
+bay_full*.json
+bay_pair.*
+gen.py
+oracle_full.txt
+bay_full.eval.json
