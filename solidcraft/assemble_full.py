@@ -25,6 +25,9 @@ def assemble(stage):
         # tray at its default (seated) spring preload sp_preload, then the bezel
         info["tray"] = g.emit_tray_full()
         info["bezel"] = g.emit_bezel()
+    if lvl >= 3:
+        g.emit_hdd()  # connector at x=0, bottom on the caddy floor (shared frame)
+        info["hdd"] = "ok"
     # every emitter re-declares the shared parameters; keep the first of each
     seen, out = set(), []
     for c in g.cmds:
