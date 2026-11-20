@@ -742,9 +742,14 @@ def emit_tray_base():
         add("solid.box", {"length": str(round(hi[0] - lo[0], 4)), "width": str(round(hi[1] - lo[1], 4)),
                           "height": str(round(hi[2] - lo[2], 4)),
                           "corner": [str(round(v, 4)) for v in lo], "operation": "join", "targets": [name]})
+    # wall tabs: scad bz_tab2d (outer face splayed bz_tab_splay), two a wall, clipped to the bezel's thickness
+    x0, x1, e = c_body_l, c_body_l + bezel_t, 0.01
+    t = math.tan(math.radians(bz_tab_splay))
     for s in (-1, 1):
-        ya, yb = sorted([s * c_in_w / 2, s * (c_in_w / 2 + c_wall)])
-        box([c_body_l - 0.01, ya, pin_z - bz_tab_h / 2], [c_body_l + bezel_t, yb, pin_z + bz_tab_h / 2])
+        quad = [(x0 - e, c_in_w / 2), (x1, c_in_w / 2), (x1, c_w / 2 + bezel_t * t), (x0 - e, c_w / 2 - e * t)]
+        quad = [(a, s * b) for a, b in quad]
+        for z in bz_tab_z:
+            _xy_poly(quad if s > 0 else quad[::-1], z - bz_tab_h / 2, bz_tab_h, "join", [name])
     box([c_body_l - 0.01, -bz_tab_w / 2, 0], [c_body_l + bezel_t, bz_tab_w / 2, c_floor])
     # pins: cylinder + conical tip; base sunk 0.4 into the wall (solid there) so the join overlaps
     sink = 0.4
