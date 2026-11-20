@@ -64,6 +64,13 @@ plate_bumps = [plate_cell(c[0], c[1]) for c in plate_bump_cells]
 wall_bump_cells = [[-8, 1], [4, 1], [-8, -1], [4, -1]]
 wall_bumps = [wall_cell(c[0], c[1]) for c in wall_bump_cells]
 
+sp_lock, sp_preload, sp_flat, sp_lead, sp_hold, sp_hole_clr = 1.0, 0.4, 1.2, 30.0, 45.0, 0.3
+sp_bump_x = (56 + 110) / 2.0
+sp_hole_x = [sp_bump_x - sp_flat / 2 - (sp_lock - sp_preload) / math.tan(math.radians(sp_lead)) - sp_hole_clr,
+             sp_bump_x + sp_flat / 2 + (sp_lock - sp_preload) / math.tan(math.radians(sp_hold))]
+sp_hole_y = [c_in_w / 2 - slide_clr - 0.15, b_in_w / 2]
+b_in_h_top = b_in_h  # assembled z of the top plate's underside
+
 # ---- honeycomb reference math (scad/lib.scad hex_holes) -------------------
 
 
@@ -175,6 +182,72 @@ def emit_honeycomb_patterned(size, keep, cx_off, cy_off, z0, t, phase=(0, 0),
     return len(kept), len(plugs)
 
 
+def plate_geometry(kind):
+    """Plate features in the ASSEMBLED frame (scad/assembled.scad).  The bottom
+    plate is rotate([180,0,0]), so local (y, z) -> world (-y, -z).  Returns a
+    dict: z0 (underside z of the slab, world), sy (+1/-1 y mirror), slots
+    [(cx, cy, l, w, clr)], caddy [(x0, y0, x1, y1)], bumps [(x, y)], keep
+    [rects relative to (b_xc, 0)], size."""
+    assert kind in ("top", "bottom")
+    sy = 1 if kind == "top" else -1
+    rear_y = rear_tab_y_top if kind == "top" else [-y for y in rear_tab_y_bot]
+    slots = [(x, s * (b_in_w / 2 + b_wall / 2), tab_len, b_wall, tab_clr)
+             for x in tab_x for s in (-1, 1)]
+    slots += [(rear_x + rear_t / 2, y, rear_t, rear_tab, rear_fit_clr) for y in rear_y]
+    caddy = []
+    if kind == "top":
+        for s in (-1, 1):
+            ys = sorted([s * sp_hole_y[0], s * sp_hole_y[1]])
+            caddy.append((sp_hole_x[0], ys[0], sp_hole_x[1], ys[1]))
+    keep = [bump_keep(b[0], b[1], b_xc, 0, plate_bump_af) for b in plate_bumps]
+    keep += [[x - tab_len / 2 - b_keep_margin - b_xc, s * b_in_w / 2 - 3 - b_keep_margin,
+              x + tab_len / 2 + b_keep_margin - b_xc, s * b_in_w / 2 + 3 + b_keep_margin]
+             for x in tab_x for s in (-1, 1)]
+    keep += [[rear_x - b_keep_margin - b_xc, y - rear_tab / 2 - b_keep_margin,
+              rear_x + rear_t + b_keep_margin - b_xc, y + rear_tab / 2 + b_keep_margin]
+             for y in rear_y]
+    keep += [[c[0] - b_keep_margin - b_xc, c[1] - b_keep_margin,
+              c[2] + b_keep_margin - b_xc, c[3] + b_keep_margin] for c in caddy]
+    bumps = [list(b) for b in plate_bumps]
+    if sy < 0:  # local -> world y mirror
+        keep = [[k[0], -k[3], k[2], -k[1]] for k in keep]
+        bumps = [[b[0], -b[1]] for b in bumps]
+    return {"z0": b_in_h_top if kind == "top" else -b_t, "sy": sy, "slots": slots,
+            "caddy": caddy, "bumps": bumps, "keep": keep,
+            "size": [b_l - b_x0 - 2 * b_vent_rim, b_in_w - 2 * b_vent_rim]}
+
+
+def emit_plate(kind):
+    """Emit a complete plate component (body `plate_<kind>`) in the assembled
+    frame: top at z [b_in_h, b_in_h+b_t] with bumps +z, bottom at z [-b_t, 0]
+    with bumps -z.  Returns (n_open_cells, n_plugs)."""
+    g = plate_geometry(kind)
+    z0, name = g["z0"], f"plate_{kind}"
+    zc = z0 + b_t / 2
+    add_params()
+    add("component.create", {"name": f"Plate_{kind}", "activate": True})
+    add("solid.box", {"length": "b_l - b_x0", "width": "b_w", "height": "b_t",
+                      "corner": ["b_x0", "-b_w/2", str(z0)],
+                      "operation": "new", "name": name, "body_name": name})
+    for cx, cy, l, w, c in g["slots"]:
+        add("solid.box", {"length": str(round(l + 2 * c, 4)), "width": str(round(w + 2 * c, 4)),
+                          "height": "b_t + 2", "center": [str(round(cx, 4)), str(round(cy, 4)), str(zc)],
+                          "operation": "cut"})
+    for x0, y0, x1, y1 in g["caddy"]:
+        add("solid.box", {"length": str(round(x1 - x0, 4)), "width": str(round(y1 - y0, 4)),
+                          "height": "b_t + 2",
+                          "center": [str(round((x0 + x1) / 2, 4)), str(round((y0 + y1) / 2, 4)), str(zc)],
+                          "operation": "cut"})
+    n, plugs = emit_honeycomb_patterned(g["size"], g["keep"], b_xc, 0.0, z0, b_t, targets=[name])
+    r = plate_bump_af / math.sqrt(3)
+    for bx, by in g["bumps"]:
+        zs = z0 + b_t if kind == "top" else z0 - bump_h
+        emit_hex(bx, by, r, zs, str(bump_h), "join", [name])
+    ref, _ = hex_cells(g["size"], hex_cell, hex_web, g["keep"], b_xc, 0.0)
+    assert n == len(ref), f"open cells {n} != hex_cells {len(ref)}"
+    return n, plugs
+
+
 def dump(path):
     with open(path, "w") as f:
         json.dump(cmds, f, indent=1)
@@ -200,4 +273,9 @@ def _demo(path):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 2 and sys.argv[1] == "plate":
+        n, plugs = emit_plate(sys.argv[2])
+        dump(sys.argv[3])
+        print(f"plate_{sys.argv[2]}: open cells {n}, plugs {plugs}, commands {len(cmds)}")
+        sys.exit(0)
     _demo(sys.argv[1] if len(sys.argv) > 1 else "hc_demo.json")
