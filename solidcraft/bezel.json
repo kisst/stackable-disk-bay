@@ -1,0 +1,552 @@
+[
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_l",
+   "expression": "147.5",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_x0",
+   "expression": "-5.0",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_in_w",
+   "expression": "107.79999999999998",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_w",
+   "expression": "112.59999999999998",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_t",
+   "expression": "2.4",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_wall",
+   "expression": "2.4",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_in_h",
+   "expression": "30.0",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "tab_len",
+   "expression": "14.0",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "tab_clr",
+   "expression": "0.15",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "parameters.add",
+  "params": {
+   "name": "b_xc",
+   "expression": "(b_x0 + b_l) / 2",
+   "unit": "mm"
+  }
+ },
+ {
+  "command": "component.create",
+  "params": {
+   "name": "Bezel",
+   "activate": true
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "34.8",
+   "width": "112.6",
+   "height": "2.0",
+   "corner": [
+    "-17.4",
+    "-56.3",
+    "0"
+   ],
+   "operation": "new",
+   "name": "bezel",
+   "body_name": "bezel"
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    -7.8,
+    -40.53
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 3,
+   "spacing": 7.8,
+   "count2": 7,
+   "spacing2": 13.51
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.0",
+   "operation": "cut"
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": -1.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    -3.9,
+    -33.775
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.pattern.rectangular",
+  "params": {
+   "entities": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "l5",
+    "l6"
+   ],
+   "count": 2,
+   "spacing": 7.8,
+   "count2": 6,
+   "spacing2": 13.51
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.0",
+   "operation": "cut"
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XY",
+   "offset": 0.0
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    -7.8,
+    13.51
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    -3.9,
+    20.265
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    -7.8,
+    27.02
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    -3.9,
+    33.775
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.polygon.inscribed",
+  "params": {
+   "center": [
+    -7.8,
+    40.53
+   ],
+   "radius": 3.4641,
+   "sides": 6,
+   "angle": 30
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "2.0",
+   "operation": "join",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "solid.move",
+  "params": {
+   "bodies": [
+    "bezel"
+   ],
+   "matrix": [
+    [
+     0,
+     0,
+     1,
+     147.5
+    ],
+    [
+     0,
+     1,
+     0,
+     0
+    ],
+    [
+     -1,
+     0,
+     0,
+     15.0
+    ]
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "2.0",
+   "width": "66.0",
+   "height": "6.0",
+   "corner": [
+    "147.5",
+    "-33.0",
+    "-1"
+   ],
+   "operation": "join",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "2.0",
+   "width": "8.2",
+   "height": "14.0",
+   "corner": [
+    "147.5",
+    "-56.3",
+    "1.35"
+   ],
+   "operation": "join",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "2.0",
+   "width": "8.2",
+   "height": "14.0",
+   "corner": [
+    "147.5",
+    "48.1",
+    "1.35"
+   ],
+   "operation": "join",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "4.0",
+   "width": "2.56",
+   "height": "8.3",
+   "corner": [
+    "146.5",
+    "-53.58",
+    "4.2"
+   ],
+   "operation": "cut",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "4.0",
+   "width": "2.56",
+   "height": "8.3",
+   "corner": [
+    "146.5",
+    "51.02",
+    "4.2"
+   ],
+   "operation": "cut",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "solid.box",
+  "params": {
+   "length": "4.0",
+   "width": "60.3",
+   "height": "2.1",
+   "corner": [
+    "146.5",
+    "-30.15",
+    "-0.05"
+   ],
+   "operation": "cut",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "YZ",
+   "offset": 146.5
+  }
+ },
+ {
+  "command": "sketch.line",
+  "params": {
+   "points": [
+    [
+     -58.3,
+     32.4
+    ],
+    [
+     16.3,
+     32.4
+    ],
+    [
+     20.3,
+     22.4
+    ],
+    [
+     40.3,
+     22.4
+    ],
+    [
+     44.3,
+     32.4
+    ],
+    [
+     58.3,
+     32.4
+    ],
+    [
+     58.3,
+     37.4
+    ],
+    [
+     -58.3,
+     37.4
+    ]
+   ],
+   "closed": true
+  }
+ },
+ {
+  "command": "sketch.fillet",
+  "params": {
+   "a": "l2",
+   "b": "l3",
+   "radius": "4.0"
+  }
+ },
+ {
+  "command": "sketch.fillet",
+  "params": {
+   "a": "l3",
+   "b": "l4",
+   "radius": "4.0"
+  }
+ },
+ {
+  "command": "sketch.fillet",
+  "params": {
+   "a": "l1",
+   "b": "l2",
+   "radius": "3.0"
+  }
+ },
+ {
+  "command": "sketch.fillet",
+  "params": {
+   "a": "l4",
+   "b": "l5",
+   "radius": "3.0"
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "4.0",
+   "operation": "cut",
+   "targets": [
+    "bezel"
+   ]
+  }
+ },
+ {
+  "command": "sketch.create",
+  "params": {
+   "plane": "XZ",
+   "offset": -26.1
+  }
+ },
+ {
+  "command": "sketch.line",
+  "params": {
+   "points": [
+    [
+     147.51,
+     -28.4
+    ],
+    [
+     145.5,
+     -28.4
+    ],
+    [
+     145.5,
+     -29.3
+    ],
+    [
+     146.0,
+     -29.8
+    ],
+    [
+     147.51,
+     -29.8
+    ]
+   ],
+   "closed": true
+  }
+ },
+ {
+  "command": "sketch.finish",
+  "params": {}
+ },
+ {
+  "command": "solid.extrude",
+  "params": {
+   "distance": "27.3",
+   "operation": "join",
+   "targets": [
+    "bezel"
+   ]
+  }
+ }
+]
