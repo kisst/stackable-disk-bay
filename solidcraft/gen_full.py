@@ -24,8 +24,12 @@ b_h = b_in_h + 2 * b_t
 b_l = c_body_l
 b_x0 = -5.0
 b_xc = (b_x0 + b_l) / 2.0
-tab_len, tab_clr = 14.0, 0.15
-tab_x = [b_xc - 54, b_xc, b_xc + 54]
+relief_r = 0.5
+tab_len = 22.0
+tab_x = [b_xc - 60, b_xc - 27, b_xc + 27, b_xc + 60]
+tab_flare, tab_splay = 15.0, 1.5
+tab_reach = b_t * math.tan(math.radians(tab_flare)) + b_wall * math.tan(math.radians(tab_splay))
+tab_clr, tab_fit_clr = 0.0, 0.08
 
 rear_t = 2.4
 rear_x = b_x0 + 1.4
@@ -47,24 +51,36 @@ bz_hex_cell, bz_hex_web = hex_cell, hex_web
 bezel_t = 2.0
 pin_z = c_floor + 6.35
 b_z0, b_z1 = -b_t, b_in_h + b_t
-bz_pull_y = b_w / 2 - 8 - 36.0 / 2
-bz_pull_w, bz_pull_wb, bz_pull_d, bz_pull_r, bz_pull_f = 36.0, 20.0, 10.0, 4.0, 3.0
-bz_tab_h, bz_tab_w = 8.0, 60.0
+bz_rim = 2.0
+bz_tab_h, bz_tab_w, bz_tab_splay = 8.0, 60.0, 4.0
 bz_tab_clr, bz_floor_clr, bz_end_clr = 0.08, 0.05, 0.15
+bz_tab_z = [pin_z, b_in_h - pin_z]
+bz_lip_w = 10.0
+bz_lip_y1 = bz_lip_w / 2
+bz_lip_y0 = bz_lip_y1 - bz_lip_w
 bz_lip_d, bz_lip_t, bz_lip_c = 2.0, 1.4, 0.5
+bz_lip_top = b_in_h - 0.2
 
 # ---- caddy tray (scad/params.scad c_*, push_*, pin_*, finger_*, sp_*) -----
 c_rear_gap = 3.0
 c_wall_top = c_floor + c_wall_h
 c_post_l = 8.0
 c_post_h = b_in_h - 0.2
-push_x1, push_w, push_h, push_fillet, push_r, push_nose = b_x0 - 5, 10.0, 6.0, 8.0, 3.0, 2.5
+push_x1 = b_x0 - 2
+push_y0 = sata_notch_y + 0.8
+push_w, push_r, push_root_r, push_nose = 10.0, 3.0, 3.0, 1.5
+# pull ledge (front counterpart of the push tab)
+pull_x, pull_w, pull_taper, pull_r, pull_root_r = 10.0, 30.0, 8.0, 3.0, 6.0
+pull_barb_w, pull_barb, pull_barb_gap, pull_ramp = 44.0, 0.4, 0.1, 2.4
+pull_hole, pull_hole_x, pull_chamfer = [4.0, 18.0], 3.0, 0.5
 pin_d, pin_tip = 2.6, 1.2
 pin_len = clr + 1.8
 hdd_side_hole_x = [28.5, 130.1]
 finger_angle, finger_w, finger_gap, finger_rim = 45.0, 6.0, 1.2, 3.0
 fingers = [[hdd_side_hole_x[0], 1], [hdd_side_hole_x[1], -1]]
-sp_rise, sp_h, sp_gap = 1.5, 2.0, 1.6
+sp_rise, sp_h = 1.5, 2.0
+sp_lock = 1.25
+sp_gap = sp_lock + 0.6
 sp_top = c_wall_top + sp_rise
 sp_slit_z = sp_top - sp_h - sp_gap
 
@@ -90,7 +106,7 @@ wall_bumps = [wall_cell(c[0], c[1]) for c in wall_bump_cells]
 
 # caddy-lock slot (scad/params.scad sp_*): derived from sp_x as there
 sp_x = [56, 110]
-sp_lock, sp_preload, sp_flat, sp_lead, sp_hold, sp_hole_clr = 1.0, 0.4, 1.2, 30.0, 45.0, 0.3
+sp_preload, sp_flat, sp_lead, sp_hold, sp_hole_clr = 0.4, 1.2, 30.0, 45.0, 0.3
 sp_bump_x = (sp_x[0] + sp_x[1]) / 2
 sp_hole_x = [sp_bump_x - sp_flat / 2 - (sp_lock - sp_preload) / math.tan(math.radians(sp_lead)) - sp_hole_clr,
              sp_bump_x + sp_flat / 2 + (sp_lock - sp_preload) / math.tan(math.radians(sp_hold))]
