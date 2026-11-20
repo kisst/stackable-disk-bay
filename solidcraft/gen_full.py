@@ -378,6 +378,51 @@ def wall_keep():
     return keep
 
 
+def emit_wall_tabs(name):
+    """scad/bay.scad:wall() dovetail tabs + root_reliefs.  tab_dovetail(-0.01,
+    b_t, 0, b_wall, 0, splay) in the frame (x, w, u) -> (x, -u, b_wall - w) at
+    the bottom, (x, b_in_h + u, b_wall - w) at the top: the same flared
+    (with u) and splayed (with w) shape as the plate notch, as a ruled loft
+    between its w=0 (z=b_wall) and w=b_wall (z=0) sections.  Roots: relief
+    rods on the wall edge (u=0), centred relief_r outside each tab end, axis
+    along w.  Returns (n_tabs, n_root_reliefs)."""
+    nt = nr = 0
+    for x in tab_x:
+        for yo, ys in ((0.0, -1), (b_in_h, 1)):          # y = yo + ys*u
+            def quad(w, x=x, yo=yo, ys=ys):
+                us = (-0.01, b_t)
+                pl = [[x + tab_end(u, w, 0.0), yo + ys * u] for u in us]
+                mi = [[x - tab_end(u, w, 0.0), yo + ys * u] for u in us]
+                poly = [pl[0], pl[1], mi[1], mi[0]]
+                def draw():
+                    add("sketch.line", {"points": [[round(a, 4), round(b, 4)] for a, b in poly],
+                                        "closed": True})
+                return draw
+            names = []
+            for w in (0.0, b_wall):
+                n = _sketch_name("tb")
+                add("sketch.create", {"plane": "XY", "offset": round(b_wall - w, 4), "name": n})
+                quad(w)()
+                add("sketch.finish", {})
+                names.append(n)
+            add("solid.loft", {"sections": [{"sketch": n} for n in names], "operation": "join",
+                               "targets": [name]})
+            nt += 1
+    for x in tab_x:
+        for yo in (0.0, b_in_h):
+            for sg in (-1, 1):
+                def circ(w, x=x, yo=yo, sg=sg):
+                    def draw():
+                        add("sketch.circle.center", {
+                            "center": [round(x + sg * (tab_end(0, w, 0.0) + relief_r), 4), round(yo, 4)],
+                            "radius": relief_r})
+                    return draw
+                ws = (-1.0, b_wall + 1)
+                _loft_cut([("XY", b_wall - w, circ(w)) for w in ws], name)
+                nr += 1
+    return nt, nr
+
+
 def emit_wall(kind):
     """Emit a wall (`wall_l` / `wall_r`).  Built in its own frame (x along the
     bay, y height, z thickness, bumps +z) like scad/bay.scad:wall(), then moved
@@ -390,17 +435,21 @@ def emit_wall(kind):
     add("component.create", {"name": f"Wall_{kind}", "activate": True})
     add("solid.box", {"length": "b_l - b_x0", "width": "b_in_h", "height": "b_wall",
                       "corner": ["b_x0", "0", "0"], "operation": "new", "name": name, "body_name": name})
-    for x in tab_x:
-        for y0 in (-b_t, b_in_h):
-            add("solid.box", {"length": "tab_len", "width": "b_t", "height": "b_wall",
-                              "corner": [str(round(x - tab_len / 2, 4)), str(round(y0, 4)), "0"],
-                              "operation": "join", "targets": [name]})
+    emit_wall_tabs(name)
     for x in wall_slot_x:
         c = rear_fit_clr
         add("solid.box", {"length": str(round(rear_t + 2 * c, 4)), "width": str(round(rear_tab + 2 * c, 4)),
                           "height": "b_wall + 2",
                           "center": [str(round(x, 4)), str(rear_tab_z), "b_wall/2"], "operation": "cut",
                           "targets": [name]})
+    for x in wall_slot_x:   # scad/bay.scad:wall() rear-slot corner reliefs, through the wall
+        for sg in (-1, 1):
+            add("sketch.create", {"plane": "XY", "offset": -1.0})
+            add("sketch.circle.center", {"center": [round(x + sg * (rear_t / 2 + rear_fit_clr), 4),
+                                                    round(rear_tab_z + sg * (rear_tab / 2 + rear_fit_clr), 4)],
+                                         "radius": relief_r})
+            add("sketch.finish", {})
+            add("solid.extrude", {"distance": round(b_wall + 2, 4), "operation": "cut", "targets": [name]})
     add("solid.box", {"length": "b_l - b_x0 + 2", "width": str(groove_w), "height": str(groove_d + 1),
                       "corner": ["b_x0 - 1", str(round(groove_z - groove_w / 2, 4)), str(round(b_wall - groove_d, 4))],
                       "operation": "cut", "targets": [name]})
