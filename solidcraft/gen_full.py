@@ -236,17 +236,15 @@ def plate_geometry(kind):
     assert kind in ("top", "bottom")
     sy = 1 if kind == "top" else -1
     rear_y = rear_tab_y_top if kind == "top" else [-y for y in rear_tab_y_bot]
-    slots = [(x, s * (b_in_w / 2 + b_wall / 2), tab_len, b_wall, tab_clr)
-             for x in tab_x for s in (-1, 1)]
-    slots += [(rear_x + rear_t / 2, y, rear_t, rear_tab, rear_fit_clr) for y in rear_y]
+    slots = [(rear_x + rear_t / 2, y, rear_t, rear_tab, rear_fit_clr) for y in rear_y]
     caddy = []
     if kind == "top":
         for s in (-1, 1):
             ys = sorted([s * sp_hole_y[0], s * sp_hole_y[1]])
             caddy.append((sp_hole_x[0], ys[0], sp_hole_x[1], ys[1]))
     keep = [bump_keep(b[0], b[1], b_xc, 0, plate_bump_af) for b in plate_bumps]
-    keep += [[x - tab_len / 2 - b_keep_margin - b_xc, s * b_in_w / 2 - 3 - b_keep_margin,
-              x + tab_len / 2 + b_keep_margin - b_xc, s * b_in_w / 2 + 3 + b_keep_margin]
+    keep += [[x - tab_len / 2 - tab_reach - b_keep_margin - b_xc, s * b_in_w / 2 - 3 - b_keep_margin,
+              x + tab_len / 2 + tab_reach + b_keep_margin - b_xc, s * b_in_w / 2 + 3 + b_keep_margin]
              for x in tab_x for s in (-1, 1)]
     keep += [[rear_x - b_keep_margin - b_xc, y - rear_tab / 2 - b_keep_margin,
               rear_x + rear_t + b_keep_margin - b_xc, y + rear_tab / 2 + b_keep_margin]
@@ -263,6 +261,80 @@ def plate_geometry(kind):
             "size": [b_l - b_x0 - 2 * b_vent_rim, b_in_w - 2 * b_vent_rim]}
 
 
+def tab_end(u, w, c=0.0, splay=tab_splay):
+    """scad/bay.scad tab_end(): half-length of a wall tab / notch at (u, w)."""
+    return (tab_len / 2 + c + u * math.tan(math.radians(tab_flare))
+            + w * math.tan(math.radians(splay)))
+
+
+_sk = [0]
+
+
+def _sketch_name(tag):
+    _sk[0] += 1
+    return f"{tag}{_sk[0]}"
+
+
+def _loft_cut(sections, name):
+    """Cut a ruled loft through sections [(plane, offset, entity-emitter)] from body `name`."""
+    names = []
+    for plane, off, draw in sections:
+        n = _sketch_name("lf")
+        add("sketch.create", {"plane": plane, "offset": round(off, 4), "name": n})
+        draw()
+        add("sketch.finish", {})
+        names.append(n)
+    add("solid.loft", {"sections": [{"sketch": n} for n in names], "operation": "cut",
+                       "targets": [name]})
+
+
+def emit_notches(kind, name):
+    """The v0.4.0 wall-tab notches: for each tab x and wall side, a dovetail
+    polyhedron tab_dovetail(-1, b_t+1, -1, b_wall+tab_fit_clr, tab_clr) in the
+    frame (x, w, u) -> (x, s*(edge - w), z0in + zs*u), plus notch_reliefs.
+    Built as a ruled loft between the two w sections (the end faces are
+    planar, so this is exactly the polyhedron).  Returns (n_notches, n_reliefs)."""
+    top = kind == "top"
+    zin, zs = (b_in_h_top, 1) if top else (0.0, -1)
+    edge = b_in_w / 2 + b_wall
+    w1 = b_wall + tab_fit_clr
+    nn = nr = 0
+    for x in tab_x:
+        into_end = top and (x + tab_len / 2 + tab_reach > sp_hole_x[1])
+        for sw in (-1, 1):
+            def quad(w, sw=sw, x=x):
+                pts = []
+                for u in (-1.0, b_t + 1):
+                    pts.append((u, tab_end(u, w, tab_clr)))
+                pl = [[x + e, -(zin + zs * u)] for u, e in pts]          # +x side, u ascending
+                mi = [[x - e, -(zin + zs * u)] for u, e in pts]
+                poly = [pl[0], pl[1], mi[1], mi[0]]
+                def draw():
+                    add("sketch.line", {"points": [[round(a, 4), round(b, 4)] for a, b in poly],
+                                        "closed": True})
+                return draw
+            _loft_cut([("XZ", sw * (edge - (-1.0)), quad(-1.0)),
+                       ("XZ", sw * (edge - w1), quad(w1))], name)
+            nn += 1
+            for sx in (-1, 1):
+                if into_end:
+                    wc = w1 - relief_r
+                    cx = lambda u: x + sx * tab_end(u, wc, tab_clr)
+                else:
+                    wc = w1
+                    cx = lambda u: x + sx * (tab_end(u, w1, tab_clr) - relief_r)
+                cy = sw * (edge - wc)
+                def circ(u, cx=cx, cy=cy):
+                    def draw():
+                        add("sketch.circle.center", {"center": [round(cx(u), 4), round(cy, 4)],
+                                                     "radius": relief_r})
+                    return draw
+                _loft_cut([("XY", zin + zs * -1.0, circ(-1.0)),
+                           ("XY", zin + zs * (b_t + 1), circ(b_t + 1))], name)
+                nr += 1
+    return nn, nr
+
+
 def emit_plate(kind):
     """Emit a complete plate component (body `plate_<kind>`) in the assembled
     frame: top at z [b_in_h, b_in_h+b_t] with bumps +z, bottom at z [-b_t, 0]
@@ -275,6 +347,7 @@ def emit_plate(kind):
     add("solid.box", {"length": "b_l - b_x0", "width": "b_w", "height": "b_t",
                       "corner": ["b_x0", "-b_w/2", str(z0)],
                       "operation": "new", "name": name, "body_name": name})
+    emit_notches(kind, name)
     for cx, cy, l, w, c in g["slots"]:
         add("solid.box", {"length": str(round(l + 2 * c, 4)), "width": str(round(w + 2 * c, 4)),
                           "height": "b_t + 2", "center": [str(round(cx, 4)), str(round(cy, 4)), str(zc)],
