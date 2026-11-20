@@ -650,10 +650,60 @@ def tray_wall_keep(s, fc_x, fc_z):
     return keep
 
 
+_PROFILES = []
+
+
+def _prof(key):
+    """2D profile point list exported from scad/caddy.scad (solidcraft/export_profiles.sh)."""
+    if not _PROFILES:
+        import os
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "tray_profiles.json")) as f:
+            _PROFILES.append(json.load(f))
+    return _PROFILES[0][key]
+
+
+def _xy_poly(pts, z0, dist, op, targets):
+    add("sketch.create", {"plane": "XY", "offset": round(z0, 4)})
+    add("sketch.line", {"points": [[round(a, 4), round(b, 4)] for a, b in pts], "closed": True})
+    add("sketch.finish", {})
+    add("solid.extrude", {"distance": str(round(dist, 4)), "operation": op, "targets": targets})
+
+
+def _plan_side_body(bname, plan, z0, h, side):
+    """intersection(linear_extrude(plan), side profile extruded through y) as a new body bname."""
+    add("sketch.create", {"plane": "XY", "offset": round(z0, 4)})
+    add("sketch.line", {"points": [[round(a, 4), round(b, 4)] for a, b in plan], "closed": True})
+    add("sketch.finish", {})
+    add("solid.extrude", {"distance": str(round(h, 4)), "operation": "new", "name": bname, "body_name": bname})
+    add("sketch.create", {"plane": "XZ", "offset": round(-b_w, 4)})
+    add("sketch.line", {"points": [_r(p) for p in side], "closed": True})
+    add("sketch.finish", {})
+    add("solid.extrude", {"distance": str(round(2 * b_w, 4)), "operation": "intersect", "targets": [bname]})
+    return bname
+
+
+def emit_pull_ledge(name="tray"):
+    """pull_ledge(): plan x side, kept only in front of the bezel face (barb only across pull_barb_w),
+    grip hole cut, then joined to the tray."""
+    xf = c_body_l + bezel_t
+    pb = "pull"
+    _plan_side_body(pb, _prof("pull_plan2d"), 0.0, c_floor + pull_barb, _prof("pull_side2d"))
+    # clip: nothing behind the bezel face; the barb (above the floor) only across pull_barb_w
+    add("solid.box", {"length": "20", "width": str(round(2 * b_w, 4)), "height": "10",
+                      "corner": [str(round(xf - 0.01 - 20, 4)), str(round(-b_w, 4)), "-3"],
+                      "operation": "cut", "targets": [pb]})
+    for lo in (pull_barb_w / 2, -b_w):
+        add("solid.box", {"length": str(round(pull_x + 5, 4)), "width": str(round(b_w - pull_barb_w / 2, 4)),
+                          "height": "3", "corner": [str(round(xf - 0.01, 4)), str(round(lo, 4)), str(c_floor)],
+                          "operation": "cut", "targets": [pb]})
+    _xy_poly(_prof("pull_hole2d"), -1.0, c_floor + pull_barb + 2, "cut", [pb])
+    add("solid.combine", {"target": name, "tools": [pb], "operation": "join"})
+
+
 def emit_tray_base():
     """Emit the caddy tray WITHOUT fingers/slots/service holes/spring slits/
     bumps (Task 6): floor, both walls (full wall_vents honeycomb, keep-outs
-    incl. finger/spring ones), front posts, bezel tabs, push tab, pins.  Built
+    incl. finger/spring ones), front posts, bezel tabs, push tab, pull ledge, pins.  Built
     in the shared frame, body `tray`.  Returns a dict of counts."""
     name = "tray"
     xl = c_body_l - c_rear_gap
@@ -707,35 +757,11 @@ def emit_tray_base():
         add("sketch.line", {"points": [[round(a, 4), round(-b, 4)] for a, b in post], "closed": True})
         add("sketch.finish", {})
         add("solid.extrude", {"distance": str(c_wall), "operation": "join", "targets": [name]})
-    # push tab (+y rear corner): rib profile in the wall plane, closed with a
-    # concave fillet r=push_fillet into the wall's rear edge and convex
-    # rounds r=push_nose on the rear corners; plus the floor box; plan rear
-    # corners rounded r=push_r.  Built as its own body, trimmed at x = c_rear_gap+2
-    # (the wall is solid there: its honeycomb starts at c_rear_gap + c_wall_rim,
-    # so the stub must not re-plug cells) and joined.
-    pb = "push"
-    xe = c_rear_gap + 6
-    rib = [[push_x1, 0], [xe, 0], [xe, c_wall_top - 3], [c_rear_gap, c_wall_top - 3],
-           [c_rear_gap, push_h], [push_x1, push_h]]
-    add("sketch.create", {"plane": "XZ", "offset": round(c_in_w / 2, 4)})
-    add("sketch.line", {"points": [[round(a, 4), round(-b, 4)] for a, b in rib], "closed": True})
-    add("sketch.fillet", {"a": "l4", "b": "l5", "radius": str(push_fillet)})
-    add("sketch.fillet", {"a": "l5", "b": "l6", "radius": str(push_nose)})
-    add("sketch.fillet", {"a": "l6", "b": "l1", "radius": str(push_nose)})
-    add("sketch.finish", {})
-    add("solid.extrude", {"distance": str(c_wall), "operation": "new", "name": pb, "body_name": pb})
-    y0 = c_w / 2 - push_w
-    add("solid.box", {"length": str(round(xe - push_x1, 4)), "width": str(push_w), "height": str(c_floor),
-                      "corner": [str(push_x1), str(round(y0, 4)), "0"], "operation": "join", "targets": [pb]})
-    xt = c_rear_gap + 2
-    add("solid.box", {"length": "30", "width": "20", "height": "40", "corner": [str(xt), str(round(y0 - 5, 4)), "-5"],
-                      "operation": "cut", "targets": [pb]})
-    add("sketch.create", {"plane": "XY", "offset": -1})
-    add("sketch.rectangle.rounded", {"p0": [push_x1, round(y0, 4)], "p1": [c_rear_gap + 20, round(c_w / 2, 4)],
-                                     "radius": str(push_r)})
-    add("sketch.finish", {})
-    add("solid.extrude", {"distance": str(c_wall_top + 2), "operation": "intersect", "targets": [pb]})
-    add("solid.combine", {"target": name, "tools": [pb], "operation": "join"})
+    # push tab (centred floor-level tongue) and pull ledge: 2D profiles from OpenSCAD's own
+    # offset math (solidcraft/export_profiles.sh), each built as plan extrude x side extrude
+    _plan_side_body("push", _prof("push_plan2d"), 0.0, c_floor, _prof("push_side2d"))
+    add("solid.combine", {"target": name, "tools": ["push"], "operation": "join"})
+    emit_pull_ledge(name)
     # bezel tabs
 
     def box(lo, hi):
