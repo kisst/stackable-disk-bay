@@ -64,8 +64,10 @@ plate_bumps = [plate_cell(c[0], c[1]) for c in plate_bump_cells]
 wall_bump_cells = [[-8, 1], [4, 1], [-8, -1], [4, -1]]
 wall_bumps = [wall_cell(c[0], c[1]) for c in wall_bump_cells]
 
+# caddy-lock slot (scad/params.scad sp_*): derived from sp_x as there
+sp_x = [56, 110]
 sp_lock, sp_preload, sp_flat, sp_lead, sp_hold, sp_hole_clr = 1.0, 0.4, 1.2, 30.0, 45.0, 0.3
-sp_bump_x = (56 + 110) / 2.0
+sp_bump_x = (sp_x[0] + sp_x[1]) / 2
 sp_hole_x = [sp_bump_x - sp_flat / 2 - (sp_lock - sp_preload) / math.tan(math.radians(sp_lead)) - sp_hole_clr,
              sp_bump_x + sp_flat / 2 + (sp_lock - sp_preload) / math.tan(math.radians(sp_hold))]
 sp_hole_y = [c_in_w / 2 - slide_clr - 0.15, b_in_w / 2]
@@ -209,7 +211,8 @@ def plate_geometry(kind):
     keep += [[c[0] - b_keep_margin - b_xc, c[1] - b_keep_margin,
               c[2] + b_keep_margin - b_xc, c[3] + b_keep_margin] for c in caddy]
     bumps = [list(b) for b in plate_bumps]
-    if sy < 0:  # local -> world y mirror
+    if sy < 0:  # local -> world y mirror (slots, keep-outs and bumps alike)
+        slots = [(x, -y, l, w, c) for x, y, l, w, c in slots]
         keep = [[k[0], -k[3], k[2], -k[1]] for k in keep]
         bumps = [[b[0], -b[1]] for b in bumps]
     return {"z0": b_in_h_top if kind == "top" else -b_t, "sy": sy, "slots": slots,
